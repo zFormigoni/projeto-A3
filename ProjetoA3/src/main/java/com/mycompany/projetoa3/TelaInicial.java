@@ -1,16 +1,15 @@
-package com.mycompany.projetoa3.TelaInicial;
-
+package com.mycompany.projetoa3;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class TelaInicial extends JFrame {
     public static void main(String[] args){
+        
+    
         
     SwingUtilities.invokeLater(() -> new TelaInicial().setVisible(true));
     
@@ -28,8 +27,12 @@ public class TelaInicial extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new GridBagLayout());
-
+        ImageIcon icon = new ImageIcon("C:/Users/gusta/OneDrive/Área de Trabalho/projeto-A3/ProjetoA3/images/pig_logo.png"); // PNG, JPG, etc.
+        
+        
+            
         JPanel panel = new JPanel();
+        setIconImage(icon.getImage());
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JLabel label = new JLabel("BEM VINDO", SwingConstants.CENTER);

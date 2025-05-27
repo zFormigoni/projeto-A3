@@ -1,4 +1,6 @@
-package com.mycompany.projetoa3.TelaInicial;
+package com.mycompany.projetoa3;
+
+
 
 public class Usuario {
     private String cpf;

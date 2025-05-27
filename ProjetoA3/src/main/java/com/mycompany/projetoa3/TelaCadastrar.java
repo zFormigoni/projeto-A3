@@ -1,4 +1,6 @@
-package com.mycompany.projetoa3.TelaInicial;
+package com.mycompany.projetoa3;
+
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -60,6 +62,7 @@ public class TelaCadastrar extends JFrame {
 
             boolean sucesso = ConexaoDB.inserirUsuario(cpf, nome, telefone, email, senha);
             if (sucesso) {
+                SessaoUsuario.setNomeUsuario(nome); // <-- salva o nome na sessão
                 JOptionPane.showMessageDialog(this, "Conta criada com sucesso!");
                 dispose();
                 new TelaResumo(cpf).setVisible(true);

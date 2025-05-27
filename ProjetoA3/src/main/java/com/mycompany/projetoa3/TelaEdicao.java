@@ -1,4 +1,6 @@
-package com.mycompany.projetoa3.TelaInicial;
+package com.mycompany.projetoa3;
+
+
 
 import javax.swing.*;
 import java.awt.*;
