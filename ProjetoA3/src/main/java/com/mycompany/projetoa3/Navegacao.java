@@ -21,8 +21,14 @@ public class Navegacao {
         if (telaAtual.equals("Renda")) destacar(btnRenda);
         if (telaAtual.equals("Perfil")) destacar(btnPerfil);
 
+          // Ações de navegação
+        btnResumo.addActionListener(e -> cardLayout.show(cards, "Resumo"));
+        btnGastos.addActionListener(e -> cardLayout.show(cards, "Gastos"));
+        btnRenda.addActionListener(e -> cardLayout.show(cards, "Renda"));
+        btnPerfil.addActionListener(e -> cardLayout.show(cards, "Perfil"));
+        
         // Ações de navegação
-        btnResumo.addActionListener(e -> {
+        /*btnResumo.addActionListener(e -> {
             new TelaResumo(cpfUsuario).setVisible(true);
             janelaAtual.setVisible(false);
         });
@@ -40,7 +46,7 @@ public class Navegacao {
         btnPerfil.addActionListener(e -> {
             new TelaPerfil(cpfUsuario).setVisible(true);
             janelaAtual.setVisible(false);
-        });
+        });*/
 
         // Adiciona os botões à barra
         barra.add(btnResumo);
@@ -57,11 +63,5 @@ public class Navegacao {
     }
 }
 
-
-        // Ações de navegação
-        btnResumo.addActionListener(e -> cardLayout.show(cards, "Resumo"));
-        btnGastos.addActionListener(e -> cardLayout.show(cards, "Gastos"));
-        btnRenda.addActionListener(e -> cardLayout.show(cards, "Renda"));
-        btnPerfil.addActionListener(e -> cardLayout.show(cards, "Perfil"));
 
 
