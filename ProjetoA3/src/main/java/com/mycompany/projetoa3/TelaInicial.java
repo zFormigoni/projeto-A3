@@ -9,7 +9,25 @@ import java.sql.*;
 public class TelaInicial extends JFrame {
     public static void main(String[] args){
         
-    
+CardLayout cardLayout = new CardLayout();
+JPanel cards = new JPanel(cardLayout);
+
+cards.add(new TelaResumo(cpfUsuario), "Resumo");
+cards.add(new TelaGastos(cpfUsuario), "Gastos");
+cards.add(new TelaRenda(cpfUsuario), "Renda");
+cards.add(new TelaPerfil(cpfUsuario), "Perfil");
+
+JPanel barraNavegacao = Navegacao.criar("Resumo", cardLayout, cards);
+
+JFrame frame = new JFrame("Sistema Financeiro");
+frame.setLayout(new BorderLayout());
+frame.add(barraNavegacao, BorderLayout.NORTH);
+frame.add(cards, BorderLayout.CENTER);
+
+frame.setSize(800, 600);
+frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+frame.setVisible(true);
+
         
     SwingUtilities.invokeLater(() -> new TelaInicial().setVisible(true));
     
