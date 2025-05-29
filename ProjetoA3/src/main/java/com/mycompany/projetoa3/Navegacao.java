@@ -32,9 +32,23 @@ public class Navegacao extends JFrame {
         setLayout(new BorderLayout());
         setIconImage(new ImageIcon(getClass().getResource("/images/pig_logo.png")).getImage());
 
+<<<<<<< HEAD
         // Painel principal com CardLayout
         cardLayout = new CardLayout();
         painelPrincipal = new JPanel(cardLayout);
+=======
+          // Ações de navegação
+        btnResumo.addActionListener(e -> cardLayout.show(cards, "Resumo"));
+        btnGastos.addActionListener(e -> cardLayout.show(cards, "Gastos"));
+        btnRenda.addActionListener(e -> cardLayout.show(cards, "Renda"));
+        btnPerfil.addActionListener(e -> cardLayout.show(cards, "Perfil"));
+        
+        // Ações de navegação
+        /*btnResumo.addActionListener(e -> {
+            new TelaResumo(cpfUsuario).setVisible(true);
+            janelaAtual.setVisible(false);
+        });
+>>>>>>> b7781bc0fb43d70f32370a616a7340c99a7928d6
 
         // Adiciona telas comuns
         painelPrincipal.add(new TelaResumo(cpfUsuario), "Resumo");
@@ -49,9 +63,16 @@ public class Navegacao extends JFrame {
             painelPrincipal.add(new TelaGerenciarCategorias(), "GerenciarCategorias");
         }
 
+<<<<<<< HEAD
         // Adiciona os painéis à janela
         add(painelPrincipal, BorderLayout.CENTER);
         add(criarBarraNavegacao(), BorderLayout.NORTH);
+=======
+        btnPerfil.addActionListener(e -> {
+            new TelaPerfil(cpfUsuario).setVisible(true);
+            janelaAtual.setVisible(false);
+        });*/
+>>>>>>> b7781bc0fb43d70f32370a616a7340c99a7928d6
 
         // Torna a janela visível antes de trocar a tela
         setVisible(true);
@@ -117,3 +138,6 @@ public class Navegacao extends JFrame {
         }
     }
 }
+
+
+
