@@ -1,12 +1,7 @@
 package com.mycompany.projetoa3;
 
-import com.mycompany.projetoa3.telas.TelaResumo;
-import com.mycompany.projetoa3.telas.TelaRenda;
-import com.mycompany.projetoa3.telas.TelaPerfil;
-import com.mycompany.projetoa3.telas.TelaGastos;
-import com.mycompany.projetoa3.telas.TelaAdmin;
-import com.mycompany.projetoa3.telas.TelaGerenciarCategorias;
-import com.mycompany.projetoa3.telas.TelaGerenciarUsuarios;
+import com.mycompany.projetoa3.telas.*;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
@@ -17,7 +12,6 @@ public class Navegacao extends JFrame {
     private JPanel painelPrincipal;
     private String tipoUsuario;
     private CardLayout cardLayout;
-
     private Map<String, JButton> botoesNavegacao = new HashMap<>();
 
     public Navegacao(String telaInicial, String cpfUsuario, String tipoUsuario) {
@@ -32,23 +26,9 @@ public class Navegacao extends JFrame {
         setLayout(new BorderLayout());
         setIconImage(new ImageIcon(getClass().getResource("/images/pig_logo.png")).getImage());
 
-<<<<<<< HEAD
         // Painel principal com CardLayout
         cardLayout = new CardLayout();
         painelPrincipal = new JPanel(cardLayout);
-=======
-          // Ações de navegação
-        btnResumo.addActionListener(e -> cardLayout.show(cards, "Resumo"));
-        btnGastos.addActionListener(e -> cardLayout.show(cards, "Gastos"));
-        btnRenda.addActionListener(e -> cardLayout.show(cards, "Renda"));
-        btnPerfil.addActionListener(e -> cardLayout.show(cards, "Perfil"));
-        
-        // Ações de navegação
-        /*btnResumo.addActionListener(e -> {
-            new TelaResumo(cpfUsuario).setVisible(true);
-            janelaAtual.setVisible(false);
-        });
->>>>>>> b7781bc0fb43d70f32370a616a7340c99a7928d6
 
         // Adiciona telas comuns
         painelPrincipal.add(new TelaResumo(cpfUsuario), "Resumo");
@@ -63,21 +43,12 @@ public class Navegacao extends JFrame {
             painelPrincipal.add(new TelaGerenciarCategorias(), "GerenciarCategorias");
         }
 
-<<<<<<< HEAD
         // Adiciona os painéis à janela
         add(painelPrincipal, BorderLayout.CENTER);
         add(criarBarraNavegacao(), BorderLayout.NORTH);
-=======
-        btnPerfil.addActionListener(e -> {
-            new TelaPerfil(cpfUsuario).setVisible(true);
-            janelaAtual.setVisible(false);
-        });*/
->>>>>>> b7781bc0fb43d70f32370a616a7340c99a7928d6
 
-        // Torna a janela visível antes de trocar a tela
+        // Torna a janela visível e exibe a tela inicial
         setVisible(true);
-
-        // Garante que a tela inicial especificada será mostrada
         trocarTela(telaInicial);
     }
 
@@ -88,7 +59,6 @@ public class Navegacao extends JFrame {
         // Telas comuns
         String[] telasPadrao = {"Resumo", "Gastos", "Renda", "Perfil"};
 
-        // Botões para telas comuns
         for (String nome : telasPadrao) {
             JButton botao = criarBotao(nome);
             botoesNavegacao.put(nome, botao);
@@ -138,6 +108,3 @@ public class Navegacao extends JFrame {
         }
     }
 }
-
-
-

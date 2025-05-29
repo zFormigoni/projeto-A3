@@ -4,41 +4,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.*;
+import java.sql.Connection;
 
 public class TelaInicial extends JFrame {
-    public static void main(String[] args){
-        
-CardLayout cardLayout = new CardLayout();
-JPanel cards = new JPanel(cardLayout);
 
-cards.add(new TelaResumo(cpfUsuario), "Resumo");
-cards.add(new TelaGastos(cpfUsuario), "Gastos");
-cards.add(new TelaRenda(cpfUsuario), "Renda");
-cards.add(new TelaPerfil(cpfUsuario), "Perfil");
-
-JPanel barraNavegacao = Navegacao.criar("Resumo", cardLayout, cards);
-
-JFrame frame = new JFrame("Sistema Financeiro");
-frame.setLayout(new BorderLayout());
-frame.add(barraNavegacao, BorderLayout.NORTH);
-frame.add(cards, BorderLayout.CENTER);
-
-frame.setSize(800, 600);
-frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-frame.setVisible(true);
-
-        
-    SwingUtilities.invokeLater(() -> new TelaInicial().setVisible(true));
-    
-    Connection conexao = ConexaoDB.conectar();
-    if (conexao != null) {
-    System.out.println("Conexão realizada com sucesso!");
-                    } else {
-    System.out.println("Falha na conexão!");
-    } 
-    
-    }
     public TelaInicial() {
         setTitle("Bem Vindo");
         setSize(300, 200);
@@ -46,9 +15,7 @@ frame.setVisible(true);
         setLocationRelativeTo(null);
         setLayout(new GridBagLayout());
         setIconImage(new ImageIcon(getClass().getResource("/images/pig_logo.png")).getImage());
-        
-        
-            
+
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
@@ -74,7 +41,7 @@ frame.setVisible(true);
             @Override
             public void actionPerformed(ActionEvent e) {
                 new TelaEntrar().setVisible(true);
-                dispose(); // fecha a tela atual
+                dispose(); // fecha essa janela
             }
         });
 
@@ -82,8 +49,22 @@ frame.setVisible(true);
             @Override
             public void actionPerformed(ActionEvent e) {
                 new TelaCadastrar().setVisible(true);
-                dispose(); // fecha a tela atual
+                dispose(); // fecha essa janela
             }
-        });     
+        });
+
+        // Testa conexão ao abrir a tela inicial
+        Connection conexao = ConexaoDB.conectar();
+        if (conexao != null) {
+            System.out.println("Conexão realizada com sucesso!");
+        } else {
+            System.out.println("Falha na conexão!");
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new TelaInicial().setVisible(true);
+        });
     }
 }
