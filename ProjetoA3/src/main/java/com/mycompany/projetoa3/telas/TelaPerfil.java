@@ -1,28 +1,21 @@
-package com.mycompany.projetoa3;
+package com.mycompany.projetoa3.telas;
 
+import com.mycompany.projetoa3.ConexaoDB;
+import com.mycompany.projetoa3.TelaInicial;
+import com.mycompany.projetoa3.Usuario;
 import javax.swing.*;
 import java.awt.*;
 
-public class TelaPerfil extends JFrame {
+public class TelaPerfil extends JPanel {
     private String cpfUsuario;
 
     public TelaPerfil(String cpfUsuario) {
         this.cpfUsuario = cpfUsuario;
-        setTitle("Perfil");
-        setSize(400, 300);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
-
-        // Adiciona a barra de navegação no topo
-        add(Navegacao.criar("Perfil", cpfUsuario, this), BorderLayout.NORTH);
 
         // Conteúdo principal centralizado
         JPanel centro = new JPanel();
         centro.setLayout(new BoxLayout(centro, BoxLayout.Y_AXIS));
-        centro.setAlignmentX(Component.CENTER_ALIGNMENT);
-        centro.setAlignmentY(Component.CENTER_ALIGNMENT);
 
         Usuario usuario = ConexaoDB.buscarUsuarioPorCpf(cpfUsuario);
 
@@ -55,22 +48,20 @@ public class TelaPerfil extends JFrame {
         add(centro, BorderLayout.CENTER);
 
         // Ações dos botões
-        btnEditar.addActionListener(e -> {
-            new TelaEdicao(cpfUsuario).setVisible(true);
-        });
+        btnEditar.addActionListener(e -> new TelaEdicao(cpfUsuario).setVisible(true));
 
         btnExcluir.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(
-                this, "Tem certeza que deseja excluir sua conta?", "Confirmar exclusão", JOptionPane.YES_NO_OPTION);
+                null, "Tem certeza que deseja excluir sua conta?", "Confirmar exclusão", JOptionPane.YES_NO_OPTION);
 
             if (confirm == JOptionPane.YES_OPTION) {
                 boolean sucesso = ConexaoDB.excluirUsuarioPorCpf(cpfUsuario);
                 if (sucesso) {
-                    JOptionPane.showMessageDialog(this, "Conta excluída com sucesso!");
-                    dispose();
+                    JOptionPane.showMessageDialog(null, "Conta excluída com sucesso!");
+                    SwingUtilities.getWindowAncestor(this).dispose();  // Fecha a janela principal
                     new TelaInicial().setVisible(true);
                 } else {
-                    JOptionPane.showMessageDialog(this, "Erro ao excluir conta.");
+                    JOptionPane.showMessageDialog(null, "Erro ao excluir conta.");
                 }
             }
         });

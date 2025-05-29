@@ -1,6 +1,8 @@
 package com.mycompany.projetoa3;
 
 import java.sql.*;
+import java.util.List;
+import java.util.ArrayList;
 
 public class ConexaoDB {
 
@@ -19,9 +21,9 @@ public class ConexaoDB {
         return conexao;
     }
 
-    // Insere novo usuário
+    // Insere novo usuário (tipo padrão é "padrao")
     public static boolean inserirUsuario(String cpf, String nome, String telefone, String email, String senha) {
-        String sql = "INSERT INTO tb_usuarios (cpf, nome, telefone, email, senha) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO tb_usuarios (cpf, nome, telefone, email, senha, tipo_usuario) VALUES (?, ?, ?, ?, ?, 'padrao')";
         try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, cpf);
             stmt.setString(2, nome);
@@ -66,25 +68,44 @@ public class ConexaoDB {
         return null;
     }
 
-    // Busca dados do usuário por CPF
-    public static Usuario buscarUsuarioPorCpf(String cpf) {
-        String sql = "SELECT cpf, nome, telefone, email FROM tb_usuarios WHERE cpf = ?";
+    // ✅ Verifica login e retorna nome + tipo
+    public static String[] verificarLoginERetornarDados(String cpf, String senha) {
+        String sql = "SELECT nome, tipo_usuario FROM tb_usuarios WHERE cpf = ? AND senha = ?";
         try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, cpf);
+            stmt.setString(2, senha);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return new Usuario(
-                    rs.getString("cpf"),
-                    rs.getString("nome"),
-                    rs.getString("telefone"),
-                    rs.getString("email")
-                );
+                String nome = rs.getString("nome");
+                String tipo = rs.getString("tipo_usuario");
+                return new String[] { nome, tipo };
             }
         } catch (SQLException e) {
-            System.out.println("Erro ao buscar usuário: " + e.getMessage());
+            System.out.println("Erro ao buscar dados do usuário: " + e.getMessage());
         }
         return null;
     }
+
+    // Busca dados do usuário por CPF
+public static Usuario buscarUsuarioPorCpf(String cpf) {
+    String sql = "SELECT cpf, nome, telefone, email, tipo_usuario FROM tb_usuarios WHERE cpf = ?";
+    try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, cpf);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            return new Usuario(
+                rs.getString("cpf"),
+                rs.getString("nome"),
+                rs.getString("telefone"),
+                rs.getString("email"),
+                rs.getString("tipo_usuario")  // novo
+            );
+        }
+    } catch (SQLException e) {
+        System.out.println("Erro ao buscar usuário: " + e.getMessage());
+    }
+    return null;
+}
 
     // Atualiza nome, telefone e email do usuário
     public static boolean atualizarUsuario(String cpf, String nome, String telefone, String email) {
@@ -114,4 +135,103 @@ public class ConexaoDB {
             return false;
         }
     }
+
+    // --- CATEGORIAS ---
+
+    public static boolean adicionarCategoria(Categoria categoria) {
+        String sql = "INSERT INTO tb_categorias (nome) VALUES (?)";
+        try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, categoria.getNome());
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Erro ao adicionar categoria: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public static boolean editarCategoria(Categoria categoria) {
+        String sql = "UPDATE tb_categorias SET nome = ? WHERE id_categoria = ?";
+        try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, categoria.getNome());
+            stmt.setInt(2, categoria.getIdCategoria());
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Erro ao editar categoria: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public static boolean excluirCategoria(int idCategoria) {
+        String sql = "DELETE FROM tb_categorias WHERE id_categoria = ?";
+        try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idCategoria);
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Erro ao excluir categoria: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public static List<Categoria> listarCategorias() {
+        List<Categoria> categorias = new ArrayList<>();
+        String sql = "SELECT * FROM tb_categorias";
+        try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Categoria cat = new Categoria(
+                    rs.getInt("id_categoria"),
+                    rs.getString("nome")
+                );
+                categorias.add(cat);
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao listar categorias: " + e.getMessage());
+        }
+        return categorias;
+    }
+    
+    public static List<Usuario> listarUsuarios() {
+    List<Usuario> usuarios = new ArrayList<>();
+    String sql = "SELECT cpf, nome, telefone, email, tipo_usuario FROM tb_usuarios";
+    try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+            Usuario u = new Usuario(
+                rs.getString("cpf"),
+                rs.getString("nome"),
+                rs.getString("telefone"),
+                rs.getString("email"),
+                rs.getString("tipo_usuario")
+            );
+            usuarios.add(u);
+        }
+    } catch (SQLException e) {
+        System.out.println("Erro ao listar usuários: " + e.getMessage());
+    }
+    return usuarios;
+}
+    
+    public static boolean editarUsuario(Usuario usuario) {
+    String sql = "UPDATE tb_usuarios SET nome = ?, email = ?, tipo_usuario = ? WHERE cpf = ?";
+    try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, usuario.getNome());
+        stmt.setString(2, usuario.getEmail());
+        stmt.setString(3, usuario.getTipo());
+        stmt.setString(4, usuario.getCpf());
+        int linhasAtualizadas = stmt.executeUpdate();
+        return linhasAtualizadas > 0;
+    } catch (SQLException e) {
+        System.out.println("Erro ao editar usuário: " + e.getMessage());
+        return false;
+    }
+}
+
+    public static boolean excluirUsuario(String cpf) {
+    return excluirUsuarioPorCpf(cpf);
+}
+
+
 }

@@ -1,7 +1,5 @@
 package com.mycompany.projetoa3;
 
-
-
 import java.awt.*;
 import javax.swing.*;
 
@@ -10,7 +8,9 @@ public class TelaEntrar extends JFrame {
         setTitle("Entrar");
         setSize(300, 200);
         setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new GridBagLayout());
+        setIconImage(new ImageIcon(getClass().getResource("/images/pig_logo.png")).getImage());
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -28,26 +28,32 @@ public class TelaEntrar extends JFrame {
         panel.add(Box.createRigidArea(new Dimension(0, 10)));
         panel.add(btnConfirmar);
 
-                add(panel);
+        add(panel);
 
-                btnConfirmar.addActionListener(e -> {
+        // Ação do botão confirmar
+        btnConfirmar.addActionListener(e -> {
             String cpf = cpfField.getText().trim();
             String senha = new String(senhaField.getPassword());
-    
+
             if (cpf.isEmpty() || senha.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Preencha CPF e senha.");
                 return;
             }
 
-            String nomeDoUsuario = ConexaoDB.verificarLoginERetornarNome(cpf, senha);
-    
-            if (nomeDoUsuario != null) {
-                SessaoUsuario.setNomeUsuario(nomeDoUsuario); // Salva o nome para uso em outras telas
+            // Verifica login e retorna array com nome e tipo
+            String[] dadosUsuario = ConexaoDB.verificarLoginERetornarDados(cpf, senha);
+
+            if (dadosUsuario != null) {
+                String nomeUsuario = dadosUsuario[0];
+                String tipoUsuario = dadosUsuario[1];
+
+                SessaoUsuario.setNomeUsuario(nomeUsuario);
                 JOptionPane.showMessageDialog(this, "Login realizado com sucesso!");
-                dispose(); // Fecha a tela atual
-                new TelaResumo(cpf).setVisible(true);
+                dispose();
+                new Navegacao("Resumo", cpf, tipoUsuario);
+                
             } else {
-            JOptionPane.showMessageDialog(this, "CPF ou senha inválidos.");
+                JOptionPane.showMessageDialog(this, "CPF ou senha inválidos.");
             }
         });
     }

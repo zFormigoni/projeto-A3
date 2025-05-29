@@ -27,12 +27,11 @@ public class TelaInicial extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new GridBagLayout());
-        ImageIcon icon = new ImageIcon("C:/Users/gusta/OneDrive/Área de Trabalho/projeto-A3/ProjetoA3/images/pig_logo.png"); // PNG, JPG, etc.
+        setIconImage(new ImageIcon(getClass().getResource("/images/pig_logo.png")).getImage());
         
         
             
         JPanel panel = new JPanel();
-        setIconImage(icon.getImage());
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JLabel label = new JLabel("BEM VINDO", SwingConstants.CENTER);

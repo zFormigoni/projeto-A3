@@ -1,7 +1,7 @@
-package com.mycompany.projetoa3;
+package com.mycompany.projetoa3.telas;
 
-
-
+import com.mycompany.projetoa3.ConexaoDB;
+import com.mycompany.projetoa3.Usuario;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
