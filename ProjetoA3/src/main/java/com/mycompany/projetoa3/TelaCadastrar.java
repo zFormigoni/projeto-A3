@@ -2,6 +2,8 @@ package com.mycompany.projetoa3;
 
 import javax.swing.*;
 import java.awt.*;
+import javax.swing.text.MaskFormatter;
+import java.text.ParseException;
 
 public class TelaCadastrar extends JFrame {
     public TelaCadastrar() {
@@ -14,10 +16,30 @@ public class TelaCadastrar extends JFrame {
         JPanel painelPrincipal = new JPanel();
         painelPrincipal.setLayout(new BoxLayout(painelPrincipal, BoxLayout.Y_AXIS));
         painelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        
+        MaskFormatter cpfMask = null;
+        MaskFormatter telefoneMask = null;
+        
+        try {
+            cpfMask = new MaskFormatter("###.###.###-##");
+            cpfMask.setPlaceholderCharacter('_');
+            telefoneMask = new MaskFormatter("(##) #####-####");
+            telefoneMask.setPlaceholderCharacter('_');
 
-        JTextField cpfField = new JTextField(15);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        
+        //JTextField cpfField = new JTextField(15);
+        JFormattedTextField cpfField = new JFormattedTextField(cpfMask);
+        cpfField.setColumns(14);
+
         JTextField nomeField = new JTextField(15);
-        JTextField telefoneField = new JTextField(15);
+        
+        //JTextField telefoneField = new JTextField(15);
+        JFormattedTextField telefoneField = new JFormattedTextField(telefoneMask);
+        cpfField.setColumns(15);
+        
         JTextField emailField = new JTextField(15);
         JPasswordField senhaField = new JPasswordField(15);
         JPasswordField confirmarSenhaField = new JPasswordField(15);
@@ -51,6 +73,16 @@ public class TelaCadastrar extends JFrame {
 
             if (!senha.equals(confirmarSenha)) {
                 JOptionPane.showMessageDialog(this, "As senhas não coincidem!");
+                return;
+            }
+            
+            if (cpf.length() != 14){
+                JOptionPane.showMessageDialog(this, "Insira um cpf valido");
+                return;
+            }
+            
+            if (!email.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$")) {
+                JOptionPane.showMessageDialog(this, "Email inválido!");
                 return;
             }
 
