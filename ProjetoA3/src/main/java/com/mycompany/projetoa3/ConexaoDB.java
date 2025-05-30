@@ -8,11 +8,21 @@ public class ConexaoDB {
 
     // Conecta ao banco de dados
     public static Connection conectar() {
+        String conGUSTAVO = "jdbc:mysql://localhost/db_a3";
+        String conVITOR = "jdbc:mysql://localhost/";
+        
+        String conDB = "vitor";
+        //String conDB = "gustavo";
         Connection conexao = null;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            conexao = DriverManager.getConnection(
-                "jdbc:mysql://localhost/db_a3", "root", "1234");
+            if (conDB == "vitor"){
+                conexao = DriverManager.getConnection(conVITOR, "root", "9411");
+                System.out.println("CONEXAO DB VITOR");
+            } else if (conDB == "gustavo"){
+                conexao = DriverManager.getConnection(conGUSTAVO, "root", "1234");
+                System.out.println("CONEXAO DB GUSTAVO");
+            }
         } catch (ClassNotFoundException e) {
             System.out.println("Driver do BD não localizado.");
         } catch (SQLException e) {
