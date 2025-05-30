@@ -11,8 +11,8 @@ public class ConexaoDB {
         String conGUSTAVO = "jdbc:mysql://localhost/db_a3";
         String conVITOR = "jdbc:mysql://localhost/";
         
-        String conDB = "vitor";
-        //String conDB = "gustavo";
+        //String conDB = "vitor";
+        String conDB = "gustavo";
         Connection conexao = null;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");

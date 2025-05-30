@@ -1,6 +1,8 @@
 package com.mycompany.projetoa3;
 
+import com.mycompany.projetoa3.telas.renda.TelaRendas;
 import com.mycompany.projetoa3.telas.*;
+import com.mycompany.projetoa3.telas.gasto.TelaGastos;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,11 +10,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Navegacao extends JFrame {
-    private String cpfUsuario;
-    private JPanel painelPrincipal;
-    private String tipoUsuario;
-    private CardLayout cardLayout;
-    private Map<String, JButton> botoesNavegacao = new HashMap<>();
+    private final String cpfUsuario;
+    private final String tipoUsuario;
+    private final JPanel painelPrincipal;
+    private final CardLayout cardLayout;
+    private final Map<String, JButton> botoesNavegacao = new HashMap<>();
 
     public Navegacao(String telaInicial, String cpfUsuario, String tipoUsuario) {
         this.cpfUsuario = cpfUsuario;
@@ -24,48 +26,53 @@ public class Navegacao extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLayout(new BorderLayout());
-        setIconImage(new ImageIcon(getClass().getResource("/images/pig_logo.png")).getImage());
+
+        // Ícone da aplicação
+        try {
+            setIconImage(new ImageIcon(getClass().getResource("/images/pig_logo.png")).getImage());
+        } catch (Exception e) {
+            System.err.println("Ícone não encontrado.");
+        }
 
         // Painel principal com CardLayout
         cardLayout = new CardLayout();
         painelPrincipal = new JPanel(cardLayout);
 
-        // Adiciona telas comuns
+        // Telas comuns
         painelPrincipal.add(new TelaResumo(cpfUsuario), "Resumo");
         painelPrincipal.add(new TelaGastos(cpfUsuario), "Gastos");
-        painelPrincipal.add(new TelaRenda(cpfUsuario), "Renda");
+        painelPrincipal.add(new TelaRendas(cpfUsuario), "Renda");
         painelPrincipal.add(new TelaPerfil(cpfUsuario), "Perfil");
 
-        // Telas exclusivas para admin
+        // Telas de admin
         if (tipoUsuario.equalsIgnoreCase("admin")) {
             painelPrincipal.add(new TelaAdmin(cpfUsuario, e -> trocarTela(e.getActionCommand())), "Admin");
             painelPrincipal.add(new TelaGerenciarUsuarios(), "GerenciarUsuarios");
             painelPrincipal.add(new TelaGerenciarCategorias(), "GerenciarCategorias");
         }
 
-        // Adiciona os painéis à janela
-        add(painelPrincipal, BorderLayout.CENTER);
+        // Adiciona os componentes à janela
         add(criarBarraNavegacao(), BorderLayout.NORTH);
+        add(painelPrincipal, BorderLayout.CENTER);
 
-        // Torna a janela visível e exibe a tela inicial
+        // Exibe a tela inicial (fallback para Resumo)
         setVisible(true);
-        trocarTela(telaInicial);
+        trocarTela((telaInicial == null || telaInicial.isBlank()) ? "Resumo" : telaInicial);
     }
 
     private JPanel criarBarraNavegacao() {
         JPanel barra = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 10));
         barra.setBackground(new Color(230, 230, 230));
 
-        // Telas comuns
+        // Telas padrões
         String[] telasPadrao = {"Resumo", "Gastos", "Renda", "Perfil"};
-
         for (String nome : telasPadrao) {
             JButton botao = criarBotao(nome);
             botoesNavegacao.put(nome, botao);
             barra.add(botao);
         }
 
-        // Botão admin, se aplicável
+        // Telas adicionais para admin
         if (tipoUsuario.equalsIgnoreCase("admin")) {
             JButton botaoAdmin = criarBotao("Admin");
             botoesNavegacao.put("Admin", botaoAdmin);
@@ -86,9 +93,8 @@ public class Navegacao extends JFrame {
     }
 
     private void trocarTela(String nomeTela) {
-        if (nomeTela == null || nomeTela.isEmpty()) {
-            nomeTela = "Resumo";
-        }
+        if (nomeTela == null || nomeTela.isEmpty()) return;
+
         cardLayout.show(painelPrincipal, nomeTela);
         destacarBotaoAtual(nomeTela);
     }
@@ -96,15 +102,11 @@ public class Navegacao extends JFrame {
     private void destacarBotaoAtual(String telaAtual) {
         for (Map.Entry<String, JButton> entry : botoesNavegacao.entrySet()) {
             JButton botao = entry.getValue();
-            if (entry.getKey().equalsIgnoreCase(telaAtual)) {
-                botao.setBackground(Color.RED);
-                botao.setForeground(Color.WHITE);
-                botao.setFont(botao.getFont().deriveFont(Font.BOLD));
-            } else {
-                botao.setBackground(Color.LIGHT_GRAY);
-                botao.setForeground(Color.BLACK);
-                botao.setFont(botao.getFont().deriveFont(Font.PLAIN));
-            }
+            boolean selecionado = entry.getKey().equalsIgnoreCase(telaAtual);
+
+            botao.setBackground(selecionado ? Color.RED : Color.LIGHT_GRAY);
+            botao.setForeground(selecionado ? Color.WHITE : Color.BLACK);
+            botao.setFont(botao.getFont().deriveFont(selecionado ? Font.BOLD : Font.PLAIN));
         }
     }
 }
