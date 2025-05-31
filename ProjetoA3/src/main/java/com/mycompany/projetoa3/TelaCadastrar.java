@@ -59,7 +59,7 @@ public class TelaCadastrar extends JFrame {
         add(painelPrincipal);
 
         btnConfirmar.addActionListener(e -> {
-            String cpf = cpfField.getText().trim();
+            String cpf = cpfField.getText().trim().replaceAll("[^\\d]", "");
             String nome = nomeField.getText().trim();
             String telefone = telefoneField.getText().trim();
             String email = emailField.getText().trim();
@@ -76,21 +76,19 @@ public class TelaCadastrar extends JFrame {
                 return;
             }
             
-            if (cpf.length() != 14){
-                JOptionPane.showMessageDialog(this, "Insira um cpf valido");
-                return;
-            }
-            
             if (!email.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$")) {
                 JOptionPane.showMessageDialog(this, "Email inválido!");
                 return;
             }
-
+            
+            System.out.println(cpf);    
             boolean sucesso = ConexaoDB.inserirUsuario(cpf, nome, telefone, email, senha);
+            
             if (sucesso) {
-            SessaoUsuario.setNomeUsuario(nome);
-            JOptionPane.showMessageDialog(this, "Conta criada com sucesso!");
-            dispose();
+                
+                SessaoUsuario.setNomeUsuario(nome);
+                JOptionPane.showMessageDialog(this, "Conta criada com sucesso!");
+                dispose();
             new Navegacao("Resumo", cpf, "usuario").setVisible(true); // <--- TIPO ADICIONADO
             } else {
                 JOptionPane.showMessageDialog(this, "Erro ao criar conta. Verifique os dados.");
