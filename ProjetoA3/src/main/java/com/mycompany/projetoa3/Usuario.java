@@ -14,13 +14,18 @@ public class Usuario {
         this.email = email;
         this.tipo = tipo;
     }
+    
+    public Usuario(){
+    
+    }
 
     public String getCpf() { return cpf; }
     public String getNome() { return nome; }
     public String getTelefone() { return telefone; }
     public String getEmail() { return email; }
     public String getTipo() { return tipo; }
-
+    
+    public void setCpf(String cpf) { this.cpf = cpf; }
     public void setNome(String nome) { this.nome = nome; }
     public void setTelefone(String telefone) { this.telefone = telefone; }
     public void setEmail(String email) { this.email = email; }

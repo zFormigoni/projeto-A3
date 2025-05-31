@@ -47,6 +47,35 @@ public class ConexaoDB {
             return false;
         }
     }
+    
+    public static boolean inserirUsuario2(Usuario usuario, String senha) {
+        String sql = "INSERT INTO tb_usuarios (cpf, nome, telefone, email, senha, tipo_usuario) VALUES (?, ?, ?, ?, ?, 'padrao')";
+        try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, usuario.getCpf());
+            stmt.setString(2, usuario.getNome());
+            stmt.setString(3, usuario.getTelefone());
+            stmt.setString(4, usuario.getEmail());
+            stmt.setString(5, senha);
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Erro ao inserir usuário: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    public static boolean consultarEmail(String email) {
+        String sql = "SELECT * FROM tb_usuarios WHERE email = ?";
+        try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            System.out.println("Erro ao verificar login: " + e.getMessage());
+            return false;
+        }
+    }
 
     // Verifica login apenas (true/false)
     public static boolean verificarLogin(String cpf, String senha) {

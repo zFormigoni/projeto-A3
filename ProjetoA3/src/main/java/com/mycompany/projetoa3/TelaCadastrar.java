@@ -5,7 +5,35 @@ import java.awt.*;
 import javax.swing.text.MaskFormatter;
 import java.text.ParseException;
 
+
+
 public class TelaCadastrar extends JFrame {
+   public static ResultadoValidacao validarDados(String cpf, String nome, String telefone, String email, String senha, String confirmarSenha) {
+    if (cpf.isEmpty() || nome.isEmpty() || telefone.isEmpty() || email.isEmpty() || senha.isEmpty()) {
+        return new ResultadoValidacao(null, "Insira todos os dados");
+    }
+
+    if (!senha.equals(confirmarSenha)) {
+        return new ResultadoValidacao(null, "As senhas não coincidem!");
+    }
+
+    if (!email.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$")) {
+        return new ResultadoValidacao(null, "Email inválido!");
+    }
+
+    if (!ConexaoDB.consultarEmail(email)) {
+        return new ResultadoValidacao(null, "Email já cadastrado!");
+    }
+
+    Usuario usuario = new Usuario();
+    usuario.setCpf(cpf);
+    usuario.setNome(nome);
+    usuario.setTelefone(telefone);
+    usuario.setEmail(email);
+
+    return new ResultadoValidacao(usuario, null);
+}
+    
     public TelaCadastrar() {
         setTitle("Criar Conta");
         setSize(400, 400);
@@ -61,28 +89,26 @@ public class TelaCadastrar extends JFrame {
         btnConfirmar.addActionListener(e -> {
             String cpf = cpfField.getText().trim().replaceAll("[^\\d]", "");
             String nome = nomeField.getText().trim();
-            String telefone = telefoneField.getText().trim();
+            String telefone = telefoneField.getText().trim().replaceAll("[^\\d]", "");
             String email = emailField.getText().trim();
             String senha = new String(senhaField.getPassword());
             String confirmarSenha = new String(confirmarSenhaField.getPassword());
 
-            if (cpf.isEmpty() || nome.isEmpty() || telefone.isEmpty() || email.isEmpty() || senha.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Preencha todos os campos.");
-                return;
-            }
-
-            if (!senha.equals(confirmarSenha)) {
-                JOptionPane.showMessageDialog(this, "As senhas não coincidem!");
+            
+            
+            
+            ResultadoValidacao resultado = validarDados(cpf, nome, telefone, email, senha, confirmarSenha);
+            
+            if (resultado.mensagemErro != null){
+                JOptionPane.showMessageDialog(null, resultado.mensagemErro);
                 return;
             }
             
-            if (!email.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$")) {
-                JOptionPane.showMessageDialog(this, "Email inválido!");
-                return;
-            }
+            Usuario usuario = resultado.usuario;
             
-            System.out.println(cpf);    
-            boolean sucesso = ConexaoDB.inserirUsuario(cpf, nome, telefone, email, senha);
+            //boolean sucesso = ConexaoDB.inserirUsuario(cpf, nome, telefone, email, senha);
+            
+            boolean sucesso = ConexaoDB.inserirUsuario2(usuario, senha);
             
             if (sucesso) {
                 
