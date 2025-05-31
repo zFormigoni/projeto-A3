@@ -3,6 +3,7 @@ package com.mycompany.projetoa3;
 import java.sql.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.sql.Connection;
 
 public class ConexaoDB {
 
@@ -64,6 +65,43 @@ public class ConexaoDB {
             return false;
         }
     }
+    
+   public static boolean consultarEmailCPF(String email, String cpf) {
+    boolean achouEmail = false;
+    boolean achouCpf = false;
+
+    String sqlEmail = "SELECT * FROM tb_usuarios WHERE email = ?";
+    String sqlCpf = "SELECT * FROM tb_usuarios WHERE cpf = ?";
+    
+    try (Connection conn = conectar(); 
+         PreparedStatement stmtEmail = conn.prepareStatement(sqlEmail)) {
+
+        stmtEmail.setString(1, email);
+        ResultSet rsEmail = stmtEmail.executeQuery();
+        if (rsEmail.next()) {
+            achouEmail = true;
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();  // Opcional: para debug
+    }
+
+    try (Connection conn = conectar(); 
+         PreparedStatement stmtCpf = conn.prepareStatement(sqlCpf)) {
+
+        stmtCpf.setString(1, cpf);
+        ResultSet rsCpf = stmtCpf.executeQuery();
+        if (rsCpf.next()) {
+            achouCpf = true;
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();  // Opcional: para debug
+    }
+
+    return achouEmail || achouCpf;
+}
+
     
     public static boolean consultarEmail(String email) {
         String sql = "SELECT * FROM tb_usuarios WHERE email = ?";

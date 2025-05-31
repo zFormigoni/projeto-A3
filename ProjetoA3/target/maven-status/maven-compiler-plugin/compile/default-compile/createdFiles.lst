@@ -5,6 +5,7 @@ com\mycompany\projetoa3\telas\TelaGerenciarUsuarios.class
 com\mycompany\projetoa3\telas\TelaGerenciarCategorias.class
 com\mycompany\projetoa3\Categoria.class
 com\mycompany\projetoa3\TelaInicial.class
+com\mycompany\projetoa3\ResultadoValidacao.class
 com\mycompany\projetoa3\telas\renda\TelaRendas$1.class
 com\mycompany\projetoa3\Usuario.class
 com\mycompany\projetoa3\telas\TelaResumo.class

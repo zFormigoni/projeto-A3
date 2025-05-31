@@ -21,8 +21,11 @@ public class TelaCadastrar extends JFrame {
         return new ResultadoValidacao(null, "Email inválido!");
     }
 
-    if (!ConexaoDB.consultarEmail(email)) {
-        return new ResultadoValidacao(null, "Email já cadastrado!");
+    boolean resultadoEmailCpf = !ConexaoDB.consultarEmailCPF(email, cpf);
+       System.out.println(resultadoEmailCpf);
+    if (!resultadoEmailCpf) {
+        System.out.println("Entrou na funcao");
+        return new ResultadoValidacao(null, "Email ou CPF já cadastrado!");
     }
 
     Usuario usuario = new Usuario();
