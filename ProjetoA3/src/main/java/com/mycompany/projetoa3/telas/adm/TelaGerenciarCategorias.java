@@ -1,4 +1,4 @@
-package com.mycompany.projetoa3.telas;
+package com.mycompany.projetoa3.telas.adm;
 
 import com.mycompany.projetoa3.Categoria;
 import com.mycompany.projetoa3.ConexaoDB;

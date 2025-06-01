@@ -284,48 +284,44 @@ public static Usuario buscarUsuarioPorCpf(String cpf) {
             return false;
         }
     }
-
-
     
     public static List<Usuario> listarUsuarios() {
-    List<Usuario> usuarios = new ArrayList<>();
-    String sql = "SELECT cpf, nome, telefone, email, tipo_usuario FROM tb_usuarios";
-    try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-        ResultSet rs = stmt.executeQuery();
-        while (rs.next()) {
-            Usuario u = new Usuario(
-                rs.getString("cpf"),
-                rs.getString("nome"),
-                rs.getString("telefone"),
-                rs.getString("email"),
-                rs.getString("tipo_usuario")
-            );
-            usuarios.add(u);
+        List<Usuario> usuarios = new ArrayList<>();
+        String sql = "SELECT cpf, nome, telefone, email, tipo_usuario FROM tb_usuarios";
+        try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Usuario u = new Usuario(
+                    rs.getString("cpf"),
+                    rs.getString("nome"),
+                    rs.getString("telefone"),
+                    rs.getString("email"),
+                    rs.getString("tipo_usuario")
+                );
+                usuarios.add(u);
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao listar usuários: " + e.getMessage());
         }
-    } catch (SQLException e) {
-        System.out.println("Erro ao listar usuários: " + e.getMessage());
+        return usuarios;
     }
-    return usuarios;
-}
     
     public static boolean editarUsuario(Usuario usuario) {
-    String sql = "UPDATE tb_usuarios SET nome = ?, email = ?, tipo_usuario = ? WHERE cpf = ?";
-    try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-        stmt.setString(1, usuario.getNome());
-        stmt.setString(2, usuario.getEmail());
-        stmt.setString(3, usuario.getTipo());
-        stmt.setString(4, usuario.getCpf());
-        int linhasAtualizadas = stmt.executeUpdate();
-        return linhasAtualizadas > 0;
-    } catch (SQLException e) {
-        System.out.println("Erro ao editar usuário: " + e.getMessage());
-        return false;
+        String sql = "UPDATE tb_usuarios SET nome = ?, email = ?, tipo_usuario = ? WHERE cpf = ?";
+        try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, usuario.getNome());
+            stmt.setString(2, usuario.getEmail());
+            stmt.setString(3, usuario.getTipo());
+            stmt.setString(4, usuario.getCpf());
+            int linhasAtualizadas = stmt.executeUpdate();
+            return linhasAtualizadas > 0;
+        } catch (SQLException e) {
+            System.out.println("Erro ao editar usuário: " + e.getMessage());
+            return false;
+        }
     }
-}
 
     public static boolean excluirUsuario(String cpf) {
-    return excluirUsuarioPorCpf(cpf);
-}
-
-
+        return excluirUsuarioPorCpf(cpf);
+    }
 }

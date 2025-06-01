@@ -1,5 +1,8 @@
 package com.mycompany.projetoa3;
 
+import com.mycompany.projetoa3.telas.adm.TelaGerenciarCategorias;
+import com.mycompany.projetoa3.telas.adm.TelaGerenciarUsuarios;
+import com.mycompany.projetoa3.telas.adm.TelaAdmin;
 import com.mycompany.projetoa3.telas.renda.TelaRendas;
 import com.mycompany.projetoa3.telas.*;
 import com.mycompany.projetoa3.telas.gasto.TelaGastos;

@@ -3,262 +3,176 @@ package com.mycompany.projetoa3.telas.gasto;
 
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import javax.swing.table.*;
+import java.sql.Date;
+import com.mycompany.projetoa3.Categoria;
+import com.mycompany.projetoa3.CategoriaDAO;
+import java.awt.BorderLayout;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 public class TelaGastos extends JPanel {
-
-    private String cpfUsuario;
-    private GastoDAO gastoDAO = new GastoDAO();
-
     private JTable tabelaGastos;
     private DefaultTableModel modeloTabela;
-
-    private JLabel lblTotal;
-    private JComboBox<String> comboCategoria;
-    private JComboBox<String> comboPeriodo;
-
-    private List<Gasto> listaGastos = new ArrayList<>();
+    private String cpfUsuario;
 
     public TelaGastos(String cpfUsuario) {
         this.cpfUsuario = cpfUsuario;
-        montarLayout();
+        initComponents();
         carregarGastos();
-        preencherFiltros();
-        aplicarFiltros();
     }
 
-    private void montarLayout() {
-        setLayout(new BorderLayout(10, 10));
+    private void initComponents() {
+        setLayout(new BorderLayout());
 
-        // Cabeçalho
-        JLabel titulo = new JLabel("Meus Gastos");
-        titulo.setFont(new Font("SansSerif", Font.BOLD, 24));
-        titulo.setHorizontalAlignment(SwingConstants.CENTER);
-        add(titulo, BorderLayout.NORTH);
-
-        // Tabela e scroll
-        modeloTabela = new DefaultTableModel(new Object[]{"Data", "Descrição", "Categoria", "Valor"}, 0) {
-            @Override
+        modeloTabela = new DefaultTableModel(new Object[]{"ID", "Data", "Descrição", "Valor", "Categoria"}, 0) {
             public boolean isCellEditable(int row, int column) {
-                return false; // deixa tabela somente leitura
+                return false;
+            }
+
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                return switch (columnIndex) {
+                    case 0 -> Integer.class;
+                    case 1 -> Date.class;
+                    case 3 -> Double.class;
+                    default -> String.class;
+                };
             }
         };
+
         tabelaGastos = new JTable(modeloTabela);
-        JScrollPane scrollPane = new JScrollPane(tabelaGastos);
-        add(scrollPane, BorderLayout.CENTER);
 
-        // Painel inferior com filtros e total
-        JPanel painelInferior = new JPanel(new BorderLayout(10, 10));
+        // Centralizar colunas
+        DefaultTableCellRenderer centralizar = new DefaultTableCellRenderer();
+        centralizar.setHorizontalAlignment(SwingConstants.CENTER);
+        for (int i = 0; i < tabelaGastos.getColumnCount(); i++) {
+            tabelaGastos.getColumnModel().getColumn(i).setCellRenderer(centralizar);
+        }
 
-        // Filtros
-        JPanel painelFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        comboCategoria = new JComboBox<>();
-        comboPeriodo = new JComboBox<>();
+        // Formatação personalizada para a coluna de valor (2 casas decimais)
+        DefaultTableCellRenderer valorRenderer = new DefaultTableCellRenderer() {
+            @Override
+            protected void setValue(Object value) {
+                if (value instanceof Number) {
+                    setText(String.format("%.2f", ((Number) value).doubleValue()));
+                    setHorizontalAlignment(SwingConstants.CENTER);
+                } else {
+                    super.setValue(value);
+                }
+            }
+        };
+        tabelaGastos.getColumnModel().getColumn(3).setCellRenderer(valorRenderer);
 
-        comboCategoria.addItem("Todas Categorias");
-        comboPeriodo.addItem("Todos os Períodos");
+        // Esconder coluna ID
+        tabelaGastos.getColumnModel().getColumn(0).setMinWidth(0);
+        tabelaGastos.getColumnModel().getColumn(0).setMaxWidth(0);
+        tabelaGastos.getColumnModel().getColumn(0).setWidth(0);
 
-        comboCategoria.addActionListener(e -> aplicarFiltros());
-        comboPeriodo.addActionListener(e -> aplicarFiltros());
+        // Filtro e ordenação
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(modeloTabela);
+        tabelaGastos.setRowSorter(sorter);
 
-        painelFiltros.add(new JLabel("Filtrar por categoria:"));
-        painelFiltros.add(comboCategoria);
+        // Adiciona filtro por frequência na coluna "Categoria"
+        sorter.setComparator(4, (cat1, cat2) -> {
+            Map<String, Integer> frequenciaCategorias = new HashMap<>();
+            for (int i = 0; i < modeloTabela.getRowCount(); i++) {
+                String categoria = modeloTabela.getValueAt(i, 4).toString();
+                frequenciaCategorias.put(categoria, frequenciaCategorias.getOrDefault(categoria, 0) + 1);
+            }
+            int freq1 = frequenciaCategorias.getOrDefault(cat1.toString(), 0);
+            int freq2 = frequenciaCategorias.getOrDefault(cat2.toString(), 0);
+            if (freq1 != freq2) {
+                return Integer.compare(freq2, freq1); // mais frequente primeiro
+            }
+            return cat1.toString().compareTo(cat2.toString()); // ordem alfabética
+        });
 
-        painelFiltros.add(new JLabel("Filtrar por período:"));
-        painelFiltros.add(comboPeriodo);
+        JScrollPane scroll = new JScrollPane(tabelaGastos);
 
-        // Botão adicionar gasto
         JButton btnAdicionar = new JButton("Adicionar Gasto");
-        btnAdicionar.addActionListener(e -> abrirDialogAdicionarGasto());
-        painelFiltros.add(btnAdicionar);
+        btnAdicionar.addActionListener(e -> abrirAdicionarGasto());
 
-        painelInferior.add(painelFiltros, BorderLayout.NORTH);
+        JButton btnEditar = new JButton("Editar Gasto");
+        btnEditar.addActionListener(e -> editarGastoSelecionado());
 
-        // Total gastos
-        lblTotal = new JLabel("Total: R$ 0,00");
-        lblTotal.setFont(new Font("SansSerif", Font.BOLD, 16));
-        lblTotal.setHorizontalAlignment(SwingConstants.RIGHT);
-        painelInferior.add(lblTotal, BorderLayout.SOUTH);
+        JButton btnExcluir = new JButton("Excluir Gasto");
+        btnExcluir.addActionListener(e -> excluirGastoSelecionado());
 
-        add(painelInferior, BorderLayout.SOUTH);
+        JPanel painelBotoes = new JPanel();
+        painelBotoes.add(btnAdicionar);
+        painelBotoes.add(btnEditar);
+        painelBotoes.add(btnExcluir);
+
+        add(scroll, BorderLayout.CENTER);
+        add(painelBotoes, BorderLayout.SOUTH);
     }
 
     private void carregarGastos() {
-        listaGastos = gastoDAO.buscarGastosPorUsuarioCpf(cpfUsuario);
-    }
-
-    private void preencherFiltros() {
-        // Preencher comboCategoria com categorias dos gastos existentes
-        Set<String> categorias = listaGastos.stream()
-                .map(Gasto::getNomeCategoria)
-                .collect(Collectors.toSet());
-
-        categorias.stream().sorted().forEach(comboCategoria::addItem);
-
-        // Preencher comboPeriodo com meses/anos dos gastos existentes (formato MM/yyyy)
-        Set<String> periodos = listaGastos.stream()
-                .map(g -> new SimpleDateFormat("MM/yyyy").format(g.getData()))
-                .collect(Collectors.toSet());
-
-        periodos.stream()
-                .sorted(Comparator.comparing(p -> {
-                    try {
-                        return new SimpleDateFormat("MM/yyyy").parse(p);
-                    } catch (Exception e) {
-                        return new Date(0);
-                    }
-                }))
-                .forEach(comboPeriodo::addItem);
-    }
-
-    private void aplicarFiltros() {
-        String categoriaSelecionada = (String) comboCategoria.getSelectedItem();
-        String periodoSelecionado = (String) comboPeriodo.getSelectedItem();
-
-        List<Gasto> gastosFiltrados = new ArrayList<>(listaGastos);
-
-        if (categoriaSelecionada != null && !categoriaSelecionada.equals("Todas Categorias")) {
-            gastosFiltrados = gastosFiltrados.stream()
-                    .filter(g -> g.getNomeCategoria().equals(categoriaSelecionada))
-                    .collect(Collectors.toList());
-        }
-
-        if (periodoSelecionado != null && !periodoSelecionado.equals("Todos os Períodos")) {
-            gastosFiltrados = gastosFiltrados.stream()
-                    .filter(g -> {
-                        String mesAno = new SimpleDateFormat("MM/yyyy").format(g.getData());
-                        return mesAno.equals(periodoSelecionado);
-                    })
-                    .collect(Collectors.toList());
-        }
-
-        atualizarTabela(gastosFiltrados);
-    }
-
-    private void atualizarTabela(List<Gasto> gastos) {
         modeloTabela.setRowCount(0);
-        SimpleDateFormat formatoData = new SimpleDateFormat("dd/MM/yyyy");
-
-        BigDecimal total = BigDecimal.ZERO;
-        for (Gasto g : gastos) {
+        List<Gasto> lista = GastoDAO.listarGastosPorUsuario(cpfUsuario);
+        for (Gasto g : lista) {
+            Categoria c = CategoriaDAO.listarCategoriasPorTipo(1).stream()
+                    .filter(cat -> cat.getIdCategoria() == g.getIdCategoria())
+                    .findFirst()
+                    .orElse(new Categoria("Categoria não encontrada", 1));
             modeloTabela.addRow(new Object[]{
-                    formatoData.format(g.getData()),
+                    g.getId(),
+                    g.getDataGasto(),
                     g.getDescricao(),
-                    g.getNomeCategoria(),
-                    "R$ " + g.getValor().setScale(2)
+                    g.getValor(),
+                    c.getNome()
             });
-            total = total.add(g.getValor());
         }
-
-        lblTotal.setText("Total: R$ " + total.setScale(2).toString());
     }
 
-    private void abrirDialogAdicionarGasto() {
-        // Implementação simples do diálogo para adicionar gasto
-        JDialog dialog = new JDialog((Dialog) SwingUtilities.getWindowAncestor(this), "Adicionar Gasto", true);
-        dialog.setSize(400, 300);
-        dialog.setLocationRelativeTo(this);
-        dialog.setLayout(new GridBagLayout());
+    public void abrirAdicionarGasto() {
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+        AdicionarGasto telaAdd = new AdicionarGasto(frame, cpfUsuario, this::atualizarTabela);
+        telaAdd.setLocationRelativeTo(frame);
+        telaAdd.setVisible(true);
+    }
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8,8,8,8);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+    public void atualizarTabela() {
+        carregarGastos();
+    }
 
-        JLabel lblData = new JLabel("Data (dd/MM/yyyy):");
-        JLabel lblDescricao = new JLabel("Descrição:");
-        JLabel lblCategoria = new JLabel("Categoria:");
-        JLabel lblValor = new JLabel("Valor (ex: 50.00):");
-
-        JTextField txtData = new JTextField();
-        JTextField txtDescricao = new JTextField();
-        JComboBox<String> comboCategoriasDialog = new JComboBox<>();
-        JTextField txtValor = new JTextField();
-
-        // Preenche categorias no combo do dialog (igual comboCategoria, mas sem "Todas")
-        listaGastos.stream()
-                .map(Gasto::getNomeCategoria)
-                .distinct()
-                .sorted()
-                .forEach(comboCategoriasDialog::addItem);
-
-        // Se nenhuma categoria cadastrada, adiciona padrão
-        if (comboCategoriasDialog.getItemCount() == 0) {
-            comboCategoriasDialog.addItem("Alimentação");
-            comboCategoriasDialog.addItem("Transporte");
-            comboCategoriasDialog.addItem("Lazer");
-        }
-
-        gbc.gridx = 0; gbc.gridy = 0;
-        dialog.add(lblData, gbc);
-        gbc.gridx = 1; gbc.gridy = 0;
-        dialog.add(txtData, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 1;
-        dialog.add(lblDescricao, gbc);
-        gbc.gridx = 1; gbc.gridy = 1;
-        dialog.add(txtDescricao, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 2;
-        dialog.add(lblCategoria, gbc);
-        gbc.gridx = 1; gbc.gridy = 2;
-        dialog.add(comboCategoriasDialog, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 3;
-        dialog.add(lblValor, gbc);
-        gbc.gridx = 1; gbc.gridy = 3;
-        dialog.add(txtValor, gbc);
-
-        JButton btnSalvar = new JButton("Salvar");
-        gbc.gridx = 1; gbc.gridy = 4;
-        dialog.add(btnSalvar, gbc);
-
-        btnSalvar.addActionListener(e -> {
-            try {
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-                Date data = sdf.parse(txtData.getText());
-                String descricao = txtDescricao.getText().trim();
-                String categoriaSelecionada = (String) comboCategoriasDialog.getSelectedItem();
-                BigDecimal valor = new BigDecimal(txtValor.getText());
-
-                if (descricao.isEmpty() || categoriaSelecionada == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
-                    JOptionPane.showMessageDialog(dialog, "Preencha todos os campos corretamente.", "Erro", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                // Cria o objeto Gasto para inserir
-                Gasto novoGasto = new Gasto(data, descricao, valor, buscarCategoriaIdPorNome(categoriaSelecionada), cpfUsuario);
-
-                if (gastoDAO.adicionarGasto(novoGasto)) {
-                    JOptionPane.showMessageDialog(dialog, "Gasto adicionado com sucesso!");
-                    carregarGastos();
-                    preencherFiltros();
-                    aplicarFiltros();
-                    dialog.dispose();
+    private void excluirGastoSelecionado() {
+        int linha = tabelaGastos.getSelectedRow();
+        if (linha >= 0) {
+            int idGasto = (int) modeloTabela.getValueAt(tabelaGastos.convertRowIndexToModel(linha), 0);
+            int confirma = JOptionPane.showConfirmDialog(this,
+                    "Deseja realmente excluir o gasto selecionado?",
+                    "Confirmação", JOptionPane.YES_NO_OPTION);
+            if (confirma == JOptionPane.YES_OPTION) {
+                if (GastoDAO.excluirGasto(idGasto)) {
+                    JOptionPane.showMessageDialog(this, "Gasto excluído com sucesso!");
+                    atualizarTabela();
                 } else {
-                    JOptionPane.showMessageDialog(dialog, "Erro ao salvar gasto.", "Erro", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Erro ao excluir gasto.");
                 }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialog, "Erro na entrada de dados: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
             }
-        });
-
-        dialog.setVisible(true);
+        } else {
+            JOptionPane.showMessageDialog(this, "Selecione um gasto para excluir.");
+        }
     }
 
-    // Método simples para retornar categoriaId pelo nome. Você deve implementar conforme seu BD.
-    private int buscarCategoriaIdPorNome(String nomeCategoria) {
-        // Exemplo fixo, adapte para buscar na tabela categorias do seu banco
-        switch (nomeCategoria.toLowerCase()) {
-            case "alimentação": return 1;
-            case "transporte": return 2;
-            case "lazer": return 3;
-            default: return 0;
+    private void editarGastoSelecionado() {
+        int linhaSelecionada = tabelaGastos.getSelectedRow();
+        if (linhaSelecionada == -1) {
+            JOptionPane.showMessageDialog(this, "Selecione um gasto para editar.");
+            return;
         }
+        int idGasto = (int) modeloTabela.getValueAt(tabelaGastos.convertRowIndexToModel(linhaSelecionada), 0);
+        Gasto gasto = GastoDAO.buscarGastoPorId(idGasto);
+        if (gasto == null) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar gasto para edição.");
+            return;
+        }
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+        EditarGasto editarDialog = new EditarGasto(frame, gasto, this::atualizarTabela);
+        editarDialog.setLocationRelativeTo(frame);
+        editarDialog.setVisible(true);
     }
 }

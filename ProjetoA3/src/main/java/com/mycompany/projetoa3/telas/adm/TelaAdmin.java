@@ -1,4 +1,4 @@
-package com.mycompany.projetoa3.telas;
+package com.mycompany.projetoa3.telas.adm;
 
 import javax.swing.*;
 import java.awt.*;
