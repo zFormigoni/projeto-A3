@@ -17,52 +17,45 @@ public class TelaGerenciarUsuarios extends JPanel {
     private JButton btnEditar, btnExcluir;
 
     public TelaGerenciarUsuarios() {
-        setLayout(null);
-        setPreferredSize(new Dimension(600, 400));
+        setLayout(new BorderLayout());
 
+        // Título
         JLabel titulo = new JLabel("Gerenciar Usuários");
         titulo.setFont(new Font("SansSerif", Font.BOLD, 20));
-        titulo.setBounds(20, 10, 300, 25);
-        add(titulo);
+        titulo.setHorizontalAlignment(JLabel.CENTER);
+        add(titulo, BorderLayout.NORTH);
 
-        JLabel labelNome = new JLabel("Nome:");
-        labelNome.setBounds(20, 50, 100, 25);
-        add(labelNome);
+        // Painel de formulários e botões
+        JPanel painelForm = new JPanel(new GridLayout(4, 2, 10, 10));
+        painelForm.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
+        painelForm.add(new JLabel("Nome:"));
         campoNome = new JTextField();
-        campoNome.setBounds(120, 50, 200, 25);
-        add(campoNome);
+        painelForm.add(campoNome);
 
-        JLabel labelEmail = new JLabel("Email:");
-        labelEmail.setBounds(20, 85, 100, 25);
-        add(labelEmail);
-
+        painelForm.add(new JLabel("Email:"));
         campoEmail = new JTextField();
-        campoEmail.setBounds(120, 85, 200, 25);
-        add(campoEmail);
+        painelForm.add(campoEmail);
 
-        JLabel labelTipo = new JLabel("Tipo:");
-        labelTipo.setBounds(20, 120, 100, 25);
-        add(labelTipo);
-
+        painelForm.add(new JLabel("Tipo:"));
         campoTipo = new JTextField();
-        campoTipo.setBounds(120, 120, 200, 25);
-        add(campoTipo);
+        painelForm.add(campoTipo);
 
+        btnEditar = new JButton("Editar");
+        btnExcluir = new JButton("Excluir");
+
+        painelForm.add(btnEditar);
+        painelForm.add(btnExcluir);
+
+        add(painelForm, BorderLayout.NORTH);
+
+        // Tabela
         modelo = new DefaultTableModel(new Object[]{"CPF", "Nome", "Email", "Tipo"}, 0);
         tabelaUsuarios = new JTable(modelo);
         JScrollPane scroll = new JScrollPane(tabelaUsuarios);
-        scroll.setBounds(20, 160, 550, 150);
-        add(scroll);
+        add(scroll, BorderLayout.CENTER);
 
-        btnEditar = new JButton("Editar");
-        btnEditar.setBounds(350, 50, 100, 25);
-        add(btnEditar);
-
-        btnExcluir = new JButton("Excluir");
-        btnExcluir.setBounds(350, 85, 100, 25);
-        add(btnExcluir);
-
+        // Eventos
         carregarUsuarios();
 
         tabelaUsuarios.addMouseListener(new MouseAdapter() {

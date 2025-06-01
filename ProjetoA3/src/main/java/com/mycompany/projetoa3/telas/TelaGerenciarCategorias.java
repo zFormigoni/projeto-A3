@@ -2,87 +2,79 @@ package com.mycompany.projetoa3.telas;
 
 import com.mycompany.projetoa3.Categoria;
 import com.mycompany.projetoa3.ConexaoDB;
-import java.util.List;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.List;
 
 public class TelaGerenciarCategorias extends JPanel {
+
     private JTable tabelaCategorias;
-    private DefaultTableModel modeloTabela;
+    private DefaultTableModel modelo;
     private JTextField campoNome;
-    private JButton botaoAdicionar, botaoEditar, botaoExcluir;
+    private JComboBox<String> comboTipo;
+    private JButton btnEditar, btnExcluir;
 
     public TelaGerenciarCategorias() {
-        setLayout(null);
-        setPreferredSize(new Dimension(600, 400));
+        setLayout(new BorderLayout());
 
-        JLabel labelNome = new JLabel("Nome da Categoria:");
-        labelNome.setBounds(20, 20, 150, 25);
-        add(labelNome);
+        // Título
+        JLabel titulo = new JLabel("Gerenciar Categorias");
+        titulo.setFont(new Font("SansSerif", Font.BOLD, 20));
+        titulo.setHorizontalAlignment(JLabel.CENTER);
+        add(titulo, BorderLayout.NORTH);
 
+        // Painel com formulário e botões
+        JPanel painelForm = new JPanel(new GridLayout(3, 2, 10, 10));
+        painelForm.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+
+        painelForm.add(new JLabel("Nome da Categoria:"));
         campoNome = new JTextField();
-        campoNome.setBounds(160, 20, 200, 25);
-        add(campoNome);
+        painelForm.add(campoNome);
 
-        botaoAdicionar = new JButton("Adicionar");
-        botaoAdicionar.setBounds(370, 20, 100, 25);
-        add(botaoAdicionar);
+        painelForm.add(new JLabel("Tipo:"));
+        comboTipo = new JComboBox<>(new String[]{"Gasto", "Renda"});
+        painelForm.add(comboTipo);
 
-        botaoEditar = new JButton("Editar");
-        botaoEditar.setBounds(20, 60, 100, 25);
-        add(botaoEditar);
+        btnEditar = new JButton("Editar");
+        btnExcluir = new JButton("Excluir");
+        painelForm.add(btnEditar);
+        painelForm.add(btnExcluir);
 
-        botaoExcluir = new JButton("Excluir");
-        botaoExcluir.setBounds(130, 60, 100, 25);
-        add(botaoExcluir);
+        add(painelForm, BorderLayout.NORTH);
 
-        modeloTabela = new DefaultTableModel(new Object[]{"ID", "Nome"}, 0);
-        tabelaCategorias = new JTable(modeloTabela);
-        JScrollPane scrollPane = new JScrollPane(tabelaCategorias);
-        scrollPane.setBounds(20, 100, 450, 200);
-        add(scrollPane);
+        // Tabela
+        modelo = new DefaultTableModel(new Object[]{"ID", "Nome", "Tipo"}, 0);
+        tabelaCategorias = new JTable(modelo);
+        JScrollPane scroll = new JScrollPane(tabelaCategorias);
+        add(scroll, BorderLayout.CENTER);
 
+        // Eventos
         carregarCategorias();
-
-        botaoAdicionar.addActionListener(e -> adicionarCategoria());
-        botaoEditar.addActionListener(e -> editarCategoria());
-        botaoExcluir.addActionListener(e -> excluirCategoria());
 
         tabelaCategorias.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent evt) {
+            public void mouseClicked(MouseEvent e) {
                 int linha = tabelaCategorias.getSelectedRow();
                 if (linha >= 0) {
-                    campoNome.setText((String) modeloTabela.getValueAt(linha, 1));
+                    campoNome.setText((String) modelo.getValueAt(linha, 1));
+                    comboTipo.setSelectedItem((String) modelo.getValueAt(linha, 2));
                 }
             }
         });
+
+        btnEditar.addActionListener(e -> editarCategoria());
+        btnExcluir.addActionListener(e -> excluirCategoria());
     }
 
     private void carregarCategorias() {
-        modeloTabela.setRowCount(0);
+        modelo.setRowCount(0);
         List<Categoria> categorias = ConexaoDB.listarCategorias();
         for (Categoria cat : categorias) {
-            modeloTabela.addRow(new Object[]{cat.getIdCategoria(), cat.getNome()});
-        }
-    }
-
-    private void adicionarCategoria() {
-        String nome = campoNome.getText().trim();
-        if (nome.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Digite o nome da categoria.");
-            return;
-        }
-
-        Categoria nova = new Categoria(0, nome);
-        if (ConexaoDB.adicionarCategoria(nova)) {
-            JOptionPane.showMessageDialog(this, "Categoria adicionada.");
-            campoNome.setText("");
-            carregarCategorias();
-        } else {
-            JOptionPane.showMessageDialog(this, "Erro ao adicionar categoria.");
+            String tipoStr = cat.getTipo() == 1 ? "Gasto" : "Renda";
+            modelo.addRow(new Object[]{cat.getIdCategoria(), cat.getNome(), tipoStr});
         }
     }
 
@@ -93,18 +85,20 @@ public class TelaGerenciarCategorias extends JPanel {
             return;
         }
 
-        int id = (int) modeloTabela.getValueAt(linha, 0);
-        String novoNome = campoNome.getText().trim();
-        if (novoNome.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Digite o novo nome da categoria.");
+        int id = (int) modelo.getValueAt(linha, 0);
+        String nome = campoNome.getText().trim();
+        int tipo = comboTipo.getSelectedItem().equals("Gasto") ? 1 : 2;
+
+        if (nome.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Preencha o nome da categoria.");
             return;
         }
 
-        Categoria cat = new Categoria(id, novoNome);
-        if (ConexaoDB.editarCategoria(cat)) {
-            JOptionPane.showMessageDialog(this, "Categoria editada.");
-            campoNome.setText("");
+        Categoria categoria = new Categoria(id, nome, tipo);
+        if (ConexaoDB.editarCategoria(categoria)) {
+            JOptionPane.showMessageDialog(this, "Categoria editada com sucesso.");
             carregarCategorias();
+            limparCampos();
         } else {
             JOptionPane.showMessageDialog(this, "Erro ao editar categoria.");
         }
@@ -117,16 +111,21 @@ public class TelaGerenciarCategorias extends JPanel {
             return;
         }
 
-        int id = (int) modeloTabela.getValueAt(linha, 0);
-        int confirmacao = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja excluir?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        int id = (int) modelo.getValueAt(linha, 0);
+        int confirmacao = JOptionPane.showConfirmDialog(this, "Deseja excluir esta categoria?", "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirmacao == JOptionPane.YES_OPTION) {
             if (ConexaoDB.excluirCategoria(id)) {
-                JOptionPane.showMessageDialog(this, "Categoria excluída.");
-                campoNome.setText("");
+                JOptionPane.showMessageDialog(this, "Categoria excluída com sucesso.");
                 carregarCategorias();
+                limparCampos();
             } else {
                 JOptionPane.showMessageDialog(this, "Erro ao excluir categoria.");
             }
         }
+    }
+
+    private void limparCampos() {
+        campoNome.setText("");
+        comboTipo.setSelectedIndex(0);
     }
 }

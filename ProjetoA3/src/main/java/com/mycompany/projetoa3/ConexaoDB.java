@@ -215,60 +215,77 @@ public static Usuario buscarUsuarioPorCpf(String cpf) {
 
     // --- CATEGORIAS ---
 
+    public static List<Categoria> listarCategorias() {
+    List<Categoria> categorias = new ArrayList<>();
+    String sql = "SELECT id, nome, tipo FROM tb_categorias";
+
+    try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+            int id = rs.getInt("id");
+            String nome = rs.getString("nome");
+            int tipo = rs.getInt("tipo");
+            categorias.add(new Categoria(id, nome, tipo));
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return categorias;
+}
+
+
     public static boolean adicionarCategoria(Categoria categoria) {
-        String sql = "INSERT INTO tb_categorias (nome) VALUES (?)";
-        try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        String sql = "INSERT INTO tb_categorias (nome, tipo) VALUES (?, ?)";
+
+        try (Connection conn = conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, categoria.getNome());
+            stmt.setInt(2, categoria.getTipo());
             stmt.executeUpdate();
             return true;
+
         } catch (SQLException e) {
-            System.out.println("Erro ao adicionar categoria: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
 
     public static boolean editarCategoria(Categoria categoria) {
-        String sql = "UPDATE tb_categorias SET nome = ? WHERE id_categoria = ?";
-        try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        String sql = "UPDATE tb_categorias SET nome = ?, tipo = ? WHERE id = ?";
+
+        try (Connection conn = conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, categoria.getNome());
-            stmt.setInt(2, categoria.getIdCategoria());
+            stmt.setInt(2, categoria.getTipo());
+            stmt.setInt(3, categoria.getIdCategoria());
             stmt.executeUpdate();
             return true;
+
         } catch (SQLException e) {
-            System.out.println("Erro ao editar categoria: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
 
-    public static boolean excluirCategoria(int idCategoria) {
-        String sql = "DELETE FROM tb_categorias WHERE id_categoria = ?";
-        try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idCategoria);
+    public static boolean excluirCategoria(int id) {
+        String sql = "DELETE FROM tb_categorias WHERE id = ?";
+
+        try (Connection conn = conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
             stmt.executeUpdate();
             return true;
+
         } catch (SQLException e) {
-            System.out.println("Erro ao excluir categoria: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
 
-    public static List<Categoria> listarCategorias() {
-        List<Categoria> categorias = new ArrayList<>();
-        String sql = "SELECT * FROM tb_categorias";
-        try (Connection conn = conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Categoria cat = new Categoria(
-                    rs.getInt("id_categoria"),
-                    rs.getString("nome")
-                );
-                categorias.add(cat);
-            }
-        } catch (SQLException e) {
-            System.out.println("Erro ao listar categorias: " + e.getMessage());
-        }
-        return categorias;
-    }
+
     
     public static List<Usuario> listarUsuarios() {
     List<Usuario> usuarios = new ArrayList<>();
