@@ -1,56 +1,74 @@
 package com.mycompany.projetoa3.telas.renda;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 public class Renda {
     private int id;
-    private Date data;
     private String descricao;
-    private BigDecimal valor;
+    private double valor;
+    private Date dataRenda;
+    private int idCategoria;
+    private String cpfUsuario;
     private String nomeCategoria;
-    private int categoriaId;
-    private String usuarioCpf;
+    
+    public Renda() {}
 
-    // Construtor com id
-    public Renda(int id, Date data, String descricao, BigDecimal valor, String nomeCategoria, int categoriaId, String usuarioCpf) {
+    public Renda(int id, String descricao, double valor, Date dataRenda, int idCategoria) {
         this.id = id;
-        this.data = data;
         this.descricao = descricao;
         this.valor = valor;
+        this.dataRenda = dataRenda;
+        this.idCategoria = idCategoria;
+    }
+
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public double getValor() {
+        return valor;
+    }
+    public void setValor(double valor) {
+        this.valor = valor;
+    }
+
+    public Date getDataRenda() {
+        return dataRenda;
+    }
+    public void setDataRenda(Date dataRenda) {
+        this.dataRenda = dataRenda;
+    }
+
+    public int getIdCategoria() {
+        return idCategoria;
+    }
+    public void setIdCategoria(int idCategoria) {
+        this.idCategoria = idCategoria;
+    }
+
+    public String getCpfUsuario() {
+        return cpfUsuario;
+    }
+    public void setCpfUsuario(String cpfUsuario) {
+        this.cpfUsuario = cpfUsuario;
+    }
+    
+
+    public String getNomeCategoria() {
+        return nomeCategoria;
+    }
+
+    public void setNomeCategoria(String nomeCategoria) {
         this.nomeCategoria = nomeCategoria;
-        this.categoriaId = categoriaId;
-        this.usuarioCpf = usuarioCpf;
-    }
-
-    // Construtor sem id (para novas rendas)
-    public Renda(Date data, String descricao, BigDecimal valor, int categoriaId, String usuarioCpf) {
-        this.data = data;
-        this.descricao = descricao;
-        this.valor = valor;
-        this.categoriaId = categoriaId;
-        this.usuarioCpf = usuarioCpf;
-    }
-
-    // Getters e setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-
-    public Date getData() { return data; }
-    public void setData(Date data) { this.data = data; }
-
-    public String getDescricao() { return descricao; }
-    public void setDescricao(String descricao) { this.descricao = descricao; }
-
-    public BigDecimal getValor() { return valor; }
-    public void setValor(BigDecimal valor) { this.valor = valor; }
-
-    public String getNomeCategoria() { return nomeCategoria; }
-    public void setNomeCategoria(String nomeCategoria) { this.nomeCategoria = nomeCategoria; }
-
-    public int getCategoriaId() { return categoriaId; }
-    public void setCategoriaId(int categoriaId) { this.categoriaId = categoriaId; }
-
-    public String getUsuarioCpf() { return usuarioCpf; }
-    public void setUsuarioCpf(String usuarioCpf) { this.usuarioCpf = usuarioCpf; }
+}
 }

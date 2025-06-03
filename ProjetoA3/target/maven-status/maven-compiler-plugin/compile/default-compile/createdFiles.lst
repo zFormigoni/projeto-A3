@@ -1,4 +1,5 @@
 com\mycompany\projetoa3\TelaInicial$1.class
+com\mycompany\projetoa3\telas\renda\AdicionarRenda.class
 com\mycompany\projetoa3\telas\adm\TelaGerenciarCategorias$1.class
 com\mycompany\projetoa3\telas\TelaEdicao.class
 com\mycompany\projetoa3\Categoria.class
@@ -17,12 +18,14 @@ com\mycompany\projetoa3\Navegacao.class
 com\mycompany\projetoa3\SessaoUsuario.class
 com\mycompany\projetoa3\telas\gasto\Gasto.class
 com\mycompany\projetoa3\TelaInicial$2.class
+com\mycompany\projetoa3\telas\renda\TelaRendas$2.class
 com\mycompany\projetoa3\ConexaoDB.class
 com\mycompany\projetoa3\TelaCadastrar.class
 com\mycompany\projetoa3\telas\adm\TelaGerenciarCategorias.class
 com\mycompany\projetoa3\TelaEntrar.class
 com\mycompany\projetoa3\telas\TelaPerfil.class
 com\mycompany\projetoa3\telas\gasto\GastoDAO.class
+com\mycompany\projetoa3\telas\renda\EditarRenda.class
 com\mycompany\projetoa3\telas\gasto\AdicionarGasto.class
 com\mycompany\projetoa3\telas\adm\TelaAdmin.class
 com\mycompany\projetoa3\telas\adm\TelaGerenciarUsuarios$1.class

@@ -1,247 +1,223 @@
 package com.mycompany.projetoa3.telas.renda;
 
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.sql.Date;
+import com.mycompany.projetoa3.Categoria;
+import com.mycompany.projetoa3.CategoriaDAO;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableRowSorter;
 
 public class TelaRendas extends JPanel {
-
-    private String cpfUsuario;
-    private RendaDAO rendaDAO = new RendaDAO();
-
     private JTable tabelaRendas;
     private DefaultTableModel modeloTabela;
-
-    private JLabel lblTotal;
-    private JComboBox<String> comboCategoria;
-    private JComboBox<String> comboPeriodo;
-
-    private List<Renda> listaRendas = new ArrayList<>();
+    private String cpfUsuario;
 
     public TelaRendas(String cpfUsuario) {
         this.cpfUsuario = cpfUsuario;
-        montarLayout();
+        initComponents();
         carregarRendas();
-        preencherFiltros();
-        aplicarFiltros();
     }
 
-    private void montarLayout() {
-        setLayout(new BorderLayout(10, 10));
+    private void initComponents() {
+        setLayout(new BorderLayout());
 
-        JLabel titulo = new JLabel("Minhas Receitas");
-        titulo.setFont(new Font("SansSerif", Font.BOLD, 24));
-        titulo.setHorizontalAlignment(SwingConstants.CENTER);
-        add(titulo, BorderLayout.NORTH);
-
-        modeloTabela = new DefaultTableModel(new Object[]{"Data", "Descrição", "Categoria", "Valor"}, 0) {
-            @Override
+        modeloTabela = new DefaultTableModel(new Object[]{"ID", "Data", "Descrição", "Valor", "Categoria"}, 0) {
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
+
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                return switch (columnIndex) {
+                    case 0 -> Integer.class;
+                    case 1 -> Date.class;
+                    case 3 -> Double.class;
+                    default -> String.class;
+                };
+            }
         };
+
         tabelaRendas = new JTable(modeloTabela);
-        JScrollPane scrollPane = new JScrollPane(tabelaRendas);
-        add(scrollPane, BorderLayout.CENTER);
+        tabelaRendas.setRowHeight(25);
+        tabelaRendas.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        tabelaRendas.setGridColor(Color.BLACK);
 
-        JPanel painelInferior = new JPanel(new BorderLayout(10, 10));
-        JPanel painelFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        comboCategoria = new JComboBox<>();
-        comboPeriodo = new JComboBox<>();
+        // Personalizar cabeçalho
+        JTableHeader header = tabelaRendas.getTableHeader();
+        header.setFont(new Font("SansSerif", Font.BOLD, 14));
+        header.setBackground(Color.BLACK);
+        header.setForeground(Color.WHITE);
+        header.setReorderingAllowed(false);
+        
+        header.setBorder(BorderFactory.createEmptyBorder());
+        
+        // Zebra + coluna valor vermelha
+        DefaultTableCellRenderer zebraRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-        comboCategoria.addItem("Todas Categorias");
-        comboPeriodo.addItem("Todos os Períodos");
+                if (isSelected) {
+                    c.setBackground(new Color(255, 100, 100));
+                    c.setForeground(Color.WHITE);
+                } else {
+                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
+                    c.setForeground(column == 3 ? Color.RED : Color.BLACK);
+                }
 
-        comboCategoria.addActionListener(e -> aplicarFiltros());
-        comboPeriodo.addActionListener(e -> aplicarFiltros());
+                setHorizontalAlignment(SwingConstants.CENTER);
 
-        painelFiltros.add(new JLabel("Filtrar por categoria:"));
-        painelFiltros.add(comboCategoria);
+                // Se for a coluna de valor, aplicar formatação numérica
+                if (column == 3 && value instanceof Number) {
+                    setText(String.format("%.2f", ((Number) value).doubleValue()));
+                }
 
-        painelFiltros.add(new JLabel("Filtrar por período:"));
-        painelFiltros.add(comboPeriodo);
+                return c;
+            }
+        };
 
-        JButton btnAdicionar = new JButton("Adicionar Receita");
-        btnAdicionar.addActionListener(e -> abrirDialogAdicionarRenda());
-        painelFiltros.add(btnAdicionar);
+        for (int i = 0; i < tabelaRendas.getColumnCount(); i++) {
+            tabelaRendas.getColumnModel().getColumn(i).setCellRenderer(zebraRenderer);
+        }
 
-        painelInferior.add(painelFiltros, BorderLayout.NORTH);
+        // Esconder coluna ID
+        tabelaRendas.getColumnModel().getColumn(0).setMinWidth(0);
+        tabelaRendas.getColumnModel().getColumn(0).setMaxWidth(0);
+        tabelaRendas.getColumnModel().getColumn(0).setWidth(0);
 
-        lblTotal = new JLabel("Total: R$ 0,00");
-        lblTotal.setFont(new Font("SansSerif", Font.BOLD, 16));
-        lblTotal.setHorizontalAlignment(SwingConstants.RIGHT);
-        painelInferior.add(lblTotal, BorderLayout.SOUTH);
+        // Filtro e ordenação
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(modeloTabela);
+        tabelaRendas.setRowSorter(sorter);
 
-        add(painelInferior, BorderLayout.SOUTH);
+        sorter.setComparator(4, (cat1, cat2) -> {
+            Map<String, Integer> frequenciaCategorias = new HashMap<>();
+            for (int i = 0; i < modeloTabela.getRowCount(); i++) {
+                String categoria = modeloTabela.getValueAt(i, 4).toString();
+                frequenciaCategorias.put(categoria, frequenciaCategorias.getOrDefault(categoria, 0) + 1);
+            }
+            int freq1 = frequenciaCategorias.getOrDefault(cat1.toString(), 0);
+            int freq2 = frequenciaCategorias.getOrDefault(cat2.toString(), 0);
+            if (freq1 != freq2) {
+                return Integer.compare(freq2, freq1);
+            }
+            return cat1.toString().compareTo(cat2.toString());
+        });
+
+        JScrollPane scroll = new JScrollPane(tabelaRendas);
+        
+        JButton btnAdicionar = new JButton("Adicionar");
+        btnAdicionar.addActionListener(e -> abrirAdicionarRenda());
+        btnAdicionar.setFocusPainted(false);
+        btnAdicionar.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        btnAdicionar.setBackground(Color.LIGHT_GRAY);
+        btnAdicionar.setPreferredSize(new Dimension(120, 20));
+
+        JButton btnEditar = new JButton("Editar");
+        btnEditar.addActionListener(e -> editarRendaSelecionada());
+        btnEditar.setFocusPainted(false);
+        btnEditar.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        btnEditar.setBackground(Color.LIGHT_GRAY);
+        btnEditar.setPreferredSize(new Dimension(120, 20));
+
+        JButton btnExcluir = new JButton("Excluir");
+        btnExcluir.addActionListener(e -> excluirRendaSelecionada());
+        btnExcluir.setFocusPainted(false);
+        btnExcluir.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        btnExcluir.setBackground(Color.LIGHT_GRAY);
+        btnExcluir.setPreferredSize(new Dimension(120, 20));
+
+        JPanel painelBotoes = new JPanel();
+        painelBotoes.add(btnAdicionar);
+        painelBotoes.add(btnEditar);
+        painelBotoes.add(btnExcluir);
+
+        add(scroll, BorderLayout.CENTER);
+        add(painelBotoes, BorderLayout.SOUTH);
     }
 
     private void carregarRendas() {
-        listaRendas = rendaDAO.buscarRendasPorUsuarioCpf(cpfUsuario);
-    }
-
-    private void preencherFiltros() {
-        Set<String> categorias = listaRendas.stream()
-                .map(Renda::getNomeCategoria)
-                .collect(Collectors.toSet());
-
-        categorias.stream().sorted().forEach(comboCategoria::addItem);
-
-        Set<String> periodos = listaRendas.stream()
-                .map(g -> new SimpleDateFormat("MM/yyyy").format(g.getData()))
-                .collect(Collectors.toSet());
-
-        periodos.stream()
-                .sorted(Comparator.comparing(p -> {
-                    try {
-                        return new SimpleDateFormat("MM/yyyy").parse(p);
-                    } catch (Exception e) {
-                        return new Date(0);
-                    }
-                }))
-                .forEach(comboPeriodo::addItem);
-    }
-
-    private void aplicarFiltros() {
-        String categoriaSelecionada = (String) comboCategoria.getSelectedItem();
-        String periodoSelecionado = (String) comboPeriodo.getSelectedItem();
-
-        List<Renda> rendasFiltradas = new ArrayList<>(listaRendas);
-
-        if (categoriaSelecionada != null && !categoriaSelecionada.equals("Todas Categorias")) {
-            rendasFiltradas = rendasFiltradas.stream()
-                    .filter(r -> r.getNomeCategoria().equals(categoriaSelecionada))
-                    .collect(Collectors.toList());
-        }
-
-        if (periodoSelecionado != null && !periodoSelecionado.equals("Todos os Períodos")) {
-            rendasFiltradas = rendasFiltradas.stream()
-                    .filter(r -> {
-                        String mesAno = new SimpleDateFormat("MM/yyyy").format(r.getData());
-                        return mesAno.equals(periodoSelecionado);
-                    })
-                    .collect(Collectors.toList());
-        }
-
-        atualizarTabela(rendasFiltradas);
-    }
-
-    private void atualizarTabela(List<Renda> rendas) {
         modeloTabela.setRowCount(0);
-        SimpleDateFormat formatoData = new SimpleDateFormat("dd/MM/yyyy");
-
-        BigDecimal total = BigDecimal.ZERO;
-        for (Renda r : rendas) {
+        List<Renda> lista = RendaDAO.listarRendasPorUsuario(cpfUsuario);
+        for (Renda r : lista) {
+            Categoria c = CategoriaDAO.listarCategoriasPorTipo(2).stream()
+                    .filter(cat -> cat.getIdCategoria() == r.getIdCategoria())
+                    .findFirst()
+                    .orElse(new Categoria("Categoria não encontrada", 2));
             modeloTabela.addRow(new Object[]{
-                    formatoData.format(r.getData()),
+                    r.getId(),
+                    r.getDataRenda(),
                     r.getDescricao(),
-                    r.getNomeCategoria(),
-                    "R$ " + r.getValor().setScale(2)
+                    r.getValor(),
+                    c.getNome()
             });
-            total = total.add(r.getValor());
         }
-
-        lblTotal.setText("Total: R$ " + total.setScale(2).toString());
     }
 
-    private void abrirDialogAdicionarRenda() {
-        JDialog dialog = new JDialog((Dialog) SwingUtilities.getWindowAncestor(this), "Adicionar Receita", true);
-        dialog.setSize(400, 300);
-        dialog.setLocationRelativeTo(this);
-        dialog.setLayout(new GridBagLayout());
+    public void abrirAdicionarRenda() {
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+        AdicionarRenda telaAdd = new AdicionarRenda(frame, cpfUsuario, this::atualizarTabela);
+        telaAdd.setLocationRelativeTo(frame);
+        telaAdd.setVisible(true);
+    }
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+    public void atualizarTabela() {
+        carregarRendas();
+    }
 
-        JLabel lblData = new JLabel("Data (dd/MM/yyyy):");
-        JLabel lblDescricao = new JLabel("Descrição:");
-        JLabel lblCategoria = new JLabel("Categoria:");
-        JLabel lblValor = new JLabel("Valor (ex: 50.00):");
-
-        JTextField txtData = new JTextField();
-        JTextField txtDescricao = new JTextField();
-        JComboBox<String> comboCategoriasDialog = new JComboBox<>();
-        JTextField txtValor = new JTextField();
-
-        listaRendas.stream()
-                .map(Renda::getNomeCategoria)
-                .distinct()
-                .sorted()
-                .forEach(comboCategoriasDialog::addItem);
-
-        if (comboCategoriasDialog.getItemCount() == 0) {
-            comboCategoriasDialog.addItem("Salário");
-            comboCategoriasDialog.addItem("Freelance");
-            comboCategoriasDialog.addItem("Outros");
-        }
-
-        gbc.gridx = 0; gbc.gridy = 0;
-        dialog.add(lblData, gbc);
-        gbc.gridx = 1; gbc.gridy = 0;
-        dialog.add(txtData, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 1;
-        dialog.add(lblDescricao, gbc);
-        gbc.gridx = 1; gbc.gridy = 1;
-        dialog.add(txtDescricao, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 2;
-        dialog.add(lblCategoria, gbc);
-        gbc.gridx = 1; gbc.gridy = 2;
-        dialog.add(comboCategoriasDialog, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 3;
-        dialog.add(lblValor, gbc);
-        gbc.gridx = 1; gbc.gridy = 3;
-        dialog.add(txtValor, gbc);
-
-        JButton btnSalvar = new JButton("Salvar");
-        gbc.gridx = 1; gbc.gridy = 4;
-        dialog.add(btnSalvar, gbc);
-
-        btnSalvar.addActionListener(e -> {
-            try {
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-                Date data = sdf.parse(txtData.getText());
-                String descricao = txtDescricao.getText().trim();
-                String categoriaSelecionada = (String) comboCategoriasDialog.getSelectedItem();
-                BigDecimal valor = new BigDecimal(txtValor.getText());
-
-                if (descricao.isEmpty() || categoriaSelecionada == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
-                    JOptionPane.showMessageDialog(dialog, "Preencha todos os campos corretamente.", "Erro", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                Renda novaRenda = new Renda(data, descricao, valor, buscarCategoriaIdPorNome(categoriaSelecionada), cpfUsuario);
-
-                if (rendaDAO.adicionarRenda(novaRenda)) {
-                    JOptionPane.showMessageDialog(dialog, "Receita adicionada com sucesso!");
-                    carregarRendas();
-                    preencherFiltros();
-                    aplicarFiltros();
-                    dialog.dispose();
+    private void excluirRendaSelecionada() {
+        int linha = tabelaRendas.getSelectedRow();
+        if (linha >= 0) {
+            int idRenda = (int) modeloTabela.getValueAt(tabelaRendas.convertRowIndexToModel(linha), 0);
+            int confirma = JOptionPane.showConfirmDialog(this,
+                    "Deseja realmente excluir a renda selecionada?",
+                    "Confirmação", JOptionPane.YES_NO_OPTION);
+            if (confirma == JOptionPane.YES_OPTION) {
+                if (RendaDAO.excluirRenda(idRenda)) {
+                    JOptionPane.showMessageDialog(this, "Renda excluída com sucesso!");
+                    atualizarTabela();
                 } else {
-                    JOptionPane.showMessageDialog(dialog, "Erro ao salvar receita.", "Erro", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Erro ao excluir renda.");
                 }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialog, "Erro na entrada de dados: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
             }
-        });
-
-        dialog.setVisible(true);
+        } else {
+            JOptionPane.showMessageDialog(this, "Selecione um renda para excluir.");
+        }
     }
 
-    private int buscarCategoriaIdPorNome(String nomeCategoria) {
-        switch (nomeCategoria.toLowerCase()) {
-            case "salário": return 4;
-            case "freelance": return 5;
-            case "outros": return 6;
-            default: return 0;
+    private void editarRendaSelecionada() {
+        int linhaSelecionada = tabelaRendas.getSelectedRow();
+        if (linhaSelecionada == -1) {
+            JOptionPane.showMessageDialog(this, "Selecione um renda para editar.");
+            return;
         }
+        int idRenda = (int) modeloTabela.getValueAt(tabelaRendas.convertRowIndexToModel(linhaSelecionada), 0);
+        Renda gasto = RendaDAO.buscarRendaPorId(idRenda);
+        if (gasto == null) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar renda para edição.");
+            return;
+        }
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+        EditarRenda editarDialog = new EditarRenda(frame, gasto, this::atualizarTabela);
+        editarDialog.setLocationRelativeTo(frame);
+        editarDialog.setVisible(true);
     }
 }

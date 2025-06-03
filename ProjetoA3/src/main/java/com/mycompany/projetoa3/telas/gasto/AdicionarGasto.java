@@ -2,11 +2,17 @@ package com.mycompany.projetoa3.telas.gasto;
 
 import com.mycompany.projetoa3.Categoria;
 import com.mycompany.projetoa3.CategoriaDAO;
-
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Frame;
+import java.awt.GridLayout;
 import java.util.List;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 public class AdicionarGasto extends JDialog {
 

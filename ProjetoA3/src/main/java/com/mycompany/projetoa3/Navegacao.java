@@ -9,6 +9,9 @@ import com.mycompany.projetoa3.telas.gasto.TelaGastos;
 
 import javax.swing.*;
 import java.awt.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,26 +64,61 @@ public class Navegacao extends JFrame {
         // Exibe a tela inicial (fallback para Resumo)
         setVisible(true);
         trocarTela((telaInicial == null || telaInicial.isBlank()) ? "Resumo" : telaInicial);
+        
+    }
+    
+    private String gerarSaudacao() {
+        LocalTime agora = LocalTime.now();
+        if (agora.isBefore(LocalTime.NOON)) {
+            return "Bom dia";
+        } else if (agora.isBefore(LocalTime.of(18, 0))) {
+            return "Boa tarde";
+        } else {
+            return "Boa noite";
+        }
     }
 
     private JPanel criarBarraNavegacao() {
-        JPanel barra = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 10));
-        barra.setBackground(new Color(230, 230, 230));
+        JPanel barra = new JPanel(new BorderLayout());
+        barra.setBackground(new Color(80, 80, 80));
 
-        // Telas padrões
+        // Painel para a saudação à esquerda
+        JPanel painelSaudacao = new JPanel(new GridBagLayout());
+        painelSaudacao.setOpaque(false); // deixa transparente para herdar a cor do pai
+        painelSaudacao.setPreferredSize(new Dimension(300, 55));
+
+        JLabel labelSaudacao = new JLabel(gerarSaudacao() + ", " + SessaoUsuario.getNomeUsuario() + "!");
+        labelSaudacao.setFont(new Font("Arial", Font.BOLD, 16));
+        labelSaudacao.setForeground(new Color(230, 230, 230));
+
+        painelSaudacao.add(labelSaudacao);
+        barra.add(painelSaudacao, BorderLayout.WEST);
+
+        // Atualiza a saudação em tempo real a cada 30 segundos
+        new javax.swing.Timer(30_000, e -> {
+            labelSaudacao.setText(gerarSaudacao() + ", " + SessaoUsuario.getNomeUsuario() + "!");
+        }).start();
+
+        // Painel para os botões alinhados à direita
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
+        painelBotoes.setOpaque(false);
+
+        // Botões padrão
         String[] telasPadrao = {"Resumo", "Gastos", "Renda", "Perfil"};
         for (String nome : telasPadrao) {
             JButton botao = criarBotao(nome);
             botoesNavegacao.put(nome, botao);
-            barra.add(botao);
+            painelBotoes.add(botao);
         }
 
-        // Telas adicionais para admin
+        // Botão adicional para admin
         if (tipoUsuario.equalsIgnoreCase("admin")) {
             JButton botaoAdmin = criarBotao("Admin");
             botoesNavegacao.put("Admin", botaoAdmin);
-            barra.add(botaoAdmin);
+            painelBotoes.add(botaoAdmin);
         }
+
+        barra.add(painelBotoes, BorderLayout.EAST);
 
         return barra;
     }
@@ -89,7 +127,7 @@ public class Navegacao extends JFrame {
         JButton botao = new JButton(nome);
         botao.setFocusPainted(false);
         botao.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        botao.setBackground(Color.LIGHT_GRAY);
+        botao.setBackground(new Color(230, 230, 230));
         botao.setPreferredSize(new Dimension(100, 35));
         botao.addActionListener(e -> trocarTela(nome));
         return botao;
@@ -107,7 +145,7 @@ public class Navegacao extends JFrame {
             JButton botao = entry.getValue();
             boolean selecionado = entry.getKey().equalsIgnoreCase(telaAtual);
 
-            botao.setBackground(selecionado ? Color.RED : Color.LIGHT_GRAY);
+            botao.setBackground(selecionado ? Color.RED : new Color(230, 230, 230));
             botao.setForeground(selecionado ? Color.WHITE : Color.BLACK);
             botao.setFont(botao.getFont().deriveFont(selecionado ? Font.BOLD : Font.PLAIN));
         }
