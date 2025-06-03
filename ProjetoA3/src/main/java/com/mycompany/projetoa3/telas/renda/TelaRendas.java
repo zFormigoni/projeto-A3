@@ -81,7 +81,7 @@ public class TelaRendas extends JPanel {
                     c.setForeground(Color.WHITE);
                 } else {
                     c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
-                    c.setForeground(column == 3 ? Color.RED : Color.BLACK);
+                    c.setForeground(column == 3 ? new Color(0, 160, 0) : Color.BLACK);
                 }
 
                 setHorizontalAlignment(SwingConstants.CENTER);
@@ -161,7 +161,7 @@ public class TelaRendas extends JPanel {
             Categoria c = CategoriaDAO.listarCategoriasPorTipo(2).stream()
                     .filter(cat -> cat.getIdCategoria() == r.getIdCategoria())
                     .findFirst()
-                    .orElse(new Categoria("Categoria não encontrada", 2));
+                    .orElse(new Categoria("Categoria não encontrada", 1));
             modeloTabela.addRow(new Object[]{
                     r.getId(),
                     r.getDataRenda(),
@@ -210,7 +210,7 @@ public class TelaRendas extends JPanel {
             return;
         }
         int idRenda = (int) modeloTabela.getValueAt(tabelaRendas.convertRowIndexToModel(linhaSelecionada), 0);
-        Renda gasto = RendaDAO.buscarRendaPorId(idRenda);
+        Renda gasto = RendaDAO.buscarRendaPorld(idRenda);
         if (gasto == null) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar renda para edição.");
             return;

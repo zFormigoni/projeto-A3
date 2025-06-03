@@ -1,61 +1,72 @@
 package com.mycompany.projetoa3;
 
+// Importações existentes
 import com.mycompany.projetoa3.telas.adm.TelaGerenciarCategorias;
 import com.mycompany.projetoa3.telas.adm.TelaGerenciarUsuarios;
 import com.mycompany.projetoa3.telas.adm.TelaAdmin;
 import com.mycompany.projetoa3.telas.renda.TelaRendas;
-import com.mycompany.projetoa3.telas.*;
+import com.mycompany.projetoa3.telas.*; // Para TelaPerfil e a NOVA TelaResumoDetalhado
 import com.mycompany.projetoa3.telas.gasto.TelaGastos;
 
 import javax.swing.*;
 import java.awt.*;
-import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Navegacao extends JFrame {
+
     private final String cpfUsuario;
     private final String tipoUsuario;
     private final JPanel painelPrincipal;
     private final CardLayout cardLayout;
     private final Map<String, JButton> botoesNavegacao = new HashMap<>();
+    private JLabel labelSaudacao; // Tornar acessível para atualização
 
     public Navegacao(String telaInicial, String cpfUsuario, String tipoUsuario) {
         this.cpfUsuario = cpfUsuario;
         this.tipoUsuario = tipoUsuario;
 
-        setTitle("Sistema Financeiro");
-        setSize(600, 400);
+        setTitle("Sistema Financeiro Pessoal"); // Título mais descritivo
+        setSize(800, 600); // Tamanho inicial um pouco maior
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Inicia maximizado
         setLayout(new BorderLayout());
 
         // Ícone da aplicação
         try {
-            setIconImage(new ImageIcon(getClass().getResource("/images/pig_logo.png")).getImage());
+            ImageIcon icon = new ImageIcon(getClass().getResource("/images/pig_logo.png"));
+            if (icon.getImage() != null) {
+                setIconImage(icon.getImage());
+            } else {
+                System.err.println("Arquivo de ícone não encontrado ou inválido: /images/pig_logo.png");
+            }
         } catch (Exception e) {
-            System.err.println("Ícone não encontrado.");
+            System.err.println("Erro ao carregar o ícone da aplicação: " + e.getMessage());
         }
 
         // Painel principal com CardLayout
         cardLayout = new CardLayout();
         painelPrincipal = new JPanel(cardLayout);
+        painelPrincipal.setBackground(Color.DARK_GRAY.darker()); // Cor de fundo para o painel principal
 
         // Telas comuns
-        painelPrincipal.add(new TelaResumo(cpfUsuario), "Resumo");
+        // ***** ALTERAÇÃO PRINCIPAL AQUI *****
+        painelPrincipal.add(new TelaResumoDetalhado(cpfUsuario), "Resumo"); // Usa a nova tela
         painelPrincipal.add(new TelaGastos(cpfUsuario), "Gastos");
         painelPrincipal.add(new TelaRendas(cpfUsuario), "Renda");
         painelPrincipal.add(new TelaPerfil(cpfUsuario), "Perfil");
 
         // Telas de admin
-        if (tipoUsuario.equalsIgnoreCase("admin")) {
+        if (tipoUsuario != null && tipoUsuario.equalsIgnoreCase("admin")) {
             painelPrincipal.add(new TelaAdmin(cpfUsuario, e -> trocarTela(e.getActionCommand())), "Admin");
+            // As telas de gerenciamento são tipicamente acessadas a partir da TelaAdmin,
+            // mas se precisar adicioná-las diretamente ao cardLayout:
             painelPrincipal.add(new TelaGerenciarUsuarios(), "GerenciarUsuarios");
             painelPrincipal.add(new TelaGerenciarCategorias(), "GerenciarCategorias");
         }
+
 
         // Adiciona os componentes à janela
         add(criarBarraNavegacao(), BorderLayout.NORTH);
@@ -64,9 +75,34 @@ public class Navegacao extends JFrame {
         // Exibe a tela inicial (fallback para Resumo)
         setVisible(true);
         trocarTela((telaInicial == null || telaInicial.isBlank()) ? "Resumo" : telaInicial);
-        
+
+        // Atualiza a saudação periodicamente e ao focar na janela
+        // (A atualização da saudação ao focar pode ser útil se o nome do usuário mudar em outra tela)
+         addWindowFocusListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowGainedFocus(java.awt.event.WindowEvent windowEvent) {
+                atualizarSaudacao();
+            }
+        });
     }
-    
+
+    private void atualizarSaudacao() {
+        if (labelSaudacao != null) {
+            String nomeUsuario = SessaoUsuario.getNomeUsuario();
+            if (nomeUsuario == null || nomeUsuario.trim().isEmpty()){
+                // Tenta buscar novamente se estiver nulo, pode ser que a sessão demorou para carregar
+                // Esta é uma contingência, idealmente a sessão já estaria carregada.
+                // Se ConexaoDB tiver um método para buscar nome por CPF:
+                // Usuario usr = ConexaoDB.buscarUsuarioPorCpf(cpfUsuario);
+                // if(usr != null) nomeUsuario = usr.getNome();
+                // else nomeUsuario = "Usuário"; // Fallback
+                nomeUsuario = "Usuário"; // Fallback simples
+            }
+            labelSaudacao.setText(gerarSaudacao() + ", " + nomeUsuario + "!");
+        }
+    }
+
+
     private String gerarSaudacao() {
         LocalTime agora = LocalTime.now();
         if (agora.isBefore(LocalTime.NOON)) {
@@ -80,27 +116,27 @@ public class Navegacao extends JFrame {
 
     private JPanel criarBarraNavegacao() {
         JPanel barra = new JPanel(new BorderLayout());
-        barra.setBackground(new Color(80, 80, 80));
+        barra.setBackground(new Color(60, 63, 65)); // Cor de fundo mais escura para a barra
+        barra.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); // Pequena margem
 
         // Painel para a saudação à esquerda
         JPanel painelSaudacao = new JPanel(new GridBagLayout());
-        painelSaudacao.setOpaque(false); // deixa transparente para herdar a cor do pai
-        painelSaudacao.setPreferredSize(new Dimension(300, 55));
+        painelSaudacao.setOpaque(false);
+        // Removido setPreferredSize para permitir que o layout gerencie melhor
 
-        JLabel labelSaudacao = new JLabel(gerarSaudacao() + ", " + SessaoUsuario.getNomeUsuario() + "!");
-        labelSaudacao.setFont(new Font("Arial", Font.BOLD, 16));
-        labelSaudacao.setForeground(new Color(230, 230, 230));
+        labelSaudacao = new JLabel(); // Inicializa o label
+        atualizarSaudacao(); // Define o texto inicial da saudação
 
+        labelSaudacao.setFont(new Font("Segoe UI", Font.BOLD, 18)); // Fonte um pouco maior e moderna
+        labelSaudacao.setForeground(new Color(220, 220, 220)); // Cor do texto mais clara
         painelSaudacao.add(labelSaudacao);
         barra.add(painelSaudacao, BorderLayout.WEST);
 
         // Atualiza a saudação em tempo real a cada 30 segundos
-        new javax.swing.Timer(30_000, e -> {
-            labelSaudacao.setText(gerarSaudacao() + ", " + SessaoUsuario.getNomeUsuario() + "!");
-        }).start();
+        new javax.swing.Timer(30000, e -> atualizarSaudacao()).start();
 
         // Painel para os botões alinhados à direita
-        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10)); // Aumenta espaçamento
         painelBotoes.setOpaque(false);
 
         // Botões padrão
@@ -112,32 +148,53 @@ public class Navegacao extends JFrame {
         }
 
         // Botão adicional para admin
-        if (tipoUsuario.equalsIgnoreCase("admin")) {
+        if (tipoUsuario != null && tipoUsuario.equalsIgnoreCase("admin")) {
             JButton botaoAdmin = criarBotao("Admin");
             botoesNavegacao.put("Admin", botaoAdmin);
             painelBotoes.add(botaoAdmin);
         }
 
         barra.add(painelBotoes, BorderLayout.EAST);
-
         return barra;
     }
 
     private JButton criarBotao(String nome) {
         JButton botao = new JButton(nome);
         botao.setFocusPainted(false);
-        botao.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        botao.setBackground(new Color(230, 230, 230));
-        botao.setPreferredSize(new Dimension(100, 35));
+        botao.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        botao.setBackground(new Color(75, 78, 80)); // Cor de fundo do botão
+        botao.setForeground(Color.WHITE); // Cor do texto do botão
+        botao.setPreferredSize(new Dimension(110, 40)); // Tamanho do botão
+        botao.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(90,93,95), 1), // Borda sutil
+            BorderFactory.createEmptyBorder(5, 15, 5, 15) // Padding interno
+        ));
+
+        // Efeito Hover
+        botao.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                if (!botao.getBackground().equals(Color.RED)) { // Não altera se for o botão ativo
+                    botao.setBackground(new Color(90, 93, 95));
+                }
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                 if (!botao.getBackground().equals(Color.RED)) {
+                    botao.setBackground(new Color(75, 78, 80));
+                }
+            }
+        });
+
         botao.addActionListener(e -> trocarTela(nome));
         return botao;
     }
 
     private void trocarTela(String nomeTela) {
         if (nomeTela == null || nomeTela.isEmpty()) return;
-
         cardLayout.show(painelPrincipal, nomeTela);
         destacarBotaoAtual(nomeTela);
+        // Garante que a saudação seja atualizada ao trocar de tela,
+        // especialmente se o nome do usuário puder ser alterado em "Perfil"
+        atualizarSaudacao();
     }
 
     private void destacarBotaoAtual(String telaAtual) {
@@ -145,9 +202,18 @@ public class Navegacao extends JFrame {
             JButton botao = entry.getValue();
             boolean selecionado = entry.getKey().equalsIgnoreCase(telaAtual);
 
-            botao.setBackground(selecionado ? Color.RED : new Color(230, 230, 230));
-            botao.setForeground(selecionado ? Color.WHITE : Color.BLACK);
+            botao.setBackground(selecionado ? Color.RED : new Color(75, 78, 80));
+            botao.setForeground(selecionado ? Color.WHITE : Color.WHITE); // Texto sempre branco
             botao.setFont(botao.getFont().deriveFont(selecionado ? Font.BOLD : Font.PLAIN));
         }
     }
+     // Método main para teste, se necessário (pode ser removido se a TelaInicial for o entry point)
+    // public static void main(String[] args) {
+    //     SwingUtilities.invokeLater(() -> {
+    //         // Para testar, você pode mockar o cpf e tipo ou buscar de um login simulado
+    //         // SessaoUsuario.setNomeUsuario("Usuário Teste"); // Simula nome na sessão
+    //         // new Navegacao("Resumo", "12345678900", "padrao").setVisible(true);
+    //          new TelaInicial().setVisible(true); // Ou inicie pela TelaInicial
+    //     });
+    // }
 }

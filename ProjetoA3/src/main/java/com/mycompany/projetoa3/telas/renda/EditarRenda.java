@@ -93,7 +93,7 @@ public class EditarRenda extends JDialog {
             return;
         }
 
-        Categoria categoriaSelecionada = CategoriaDAO.listarCategoriasPorTipo(1).stream()
+        Categoria categoriaSelecionada = CategoriaDAO.listarCategoriasPorTipo(2).stream()
                 .filter(c -> c.getNome().equals(nomeCategoria))
                 .findFirst()
                 .orElse(null);
@@ -110,13 +110,13 @@ public class EditarRenda extends JDialog {
 
         boolean sucesso = RendaDAO.atualizarRenda(renda);
         if (sucesso) {
-            JOptionPane.showMessageDialog(this, "Gasto atualizado com sucesso!");
+            JOptionPane.showMessageDialog(this, "Renda atualizada com sucesso!");
             if (onSuccess != null) {
                 onSuccess.run();
             }
             dispose();
         } else {
-            JOptionPane.showMessageDialog(this, "Erro ao atualizar gasto.");
+            JOptionPane.showMessageDialog(this, "Erro ao atualizar renda.");
         }
     }
 }

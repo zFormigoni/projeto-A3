@@ -111,13 +111,13 @@ public class AdicionarRenda extends JDialog {
         boolean sucesso = RendaDAO.inserirRenda(novaRenda);
 
         if (sucesso) {
-            JOptionPane.showMessageDialog(this, "Gasto adicionado com sucesso!");
+            JOptionPane.showMessageDialog(this, "Renda adicionada com sucesso!");
             if (onSuccess != null) {
                 onSuccess.run();
             }
             dispose();
         } else {
-            JOptionPane.showMessageDialog(this, "Erro ao adicionar gasto.");
+            JOptionPane.showMessageDialog(this, "Erro ao adicionar Renda.");
         }
     }
 }

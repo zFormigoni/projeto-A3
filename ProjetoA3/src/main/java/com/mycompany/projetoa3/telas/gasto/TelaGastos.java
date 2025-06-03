@@ -161,7 +161,7 @@ public class TelaGastos extends JPanel {
             Categoria c = CategoriaDAO.listarCategoriasPorTipo(1).stream()
                     .filter(cat -> cat.getIdCategoria() == g.getIdCategoria())
                     .findFirst()
-                    .orElse(new Categoria("Categoria não encontrada", 1));
+                    .orElse(new Categoria("Categoria não encontrada", 2));
             modeloTabela.addRow(new Object[]{
                     g.getId(),
                     g.getDataGasto(),
@@ -210,7 +210,7 @@ public class TelaGastos extends JPanel {
             return;
         }
         int idGasto = (int) modeloTabela.getValueAt(tabelaGastos.convertRowIndexToModel(linhaSelecionada), 0);
-        Gasto gasto = GastoDAO.buscarGastoPorId(idGasto);
+        Gasto gasto = GastoDAO.buscarGastoPorld(idGasto);
         if (gasto == null) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar gasto para edição.");
             return;
