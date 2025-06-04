@@ -1,8 +1,5 @@
 package com.mycompany.projetoa3.telas;
 
-import com.mycompany.projetoa3.Categoria;
-import com.mycompany.projetoa3.CategoriaDAO;
-import com.mycompany.projetoa3.SessaoUsuario;
 import com.mycompany.projetoa3.telas.gasto.Gasto;
 import com.mycompany.projetoa3.telas.gasto.GastoDAO;
 import com.mycompany.projetoa3.telas.renda.Renda;
@@ -11,10 +8,9 @@ import com.mycompany.projetoa3.telas.renda.RendaDAO;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.labels.PieSectionLabelGenerator;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.plot.PiePlot;
-import org.jfree.chart.title.TextTitle; // Import necessário para verificar o título
+import org.jfree.chart.title.TextTitle;
 import org.jfree.data.general.DefaultPieDataset;
 
 import javax.swing.*;
@@ -23,6 +19,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
+import java.awt.event.ActionEvent; // Import para ActionEvent
+import java.awt.event.ActionListener; // Import para ActionListener
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -31,8 +29,10 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date; 
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -43,6 +43,8 @@ public class TelaResumoDetalhado extends JPanel {
     private final String cpfUsuario;
     private final DecimalFormat df = new DecimalFormat("R$ #,##0.00");
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM");
+    private final SimpleDateFormat sdfAnoMes = new SimpleDateFormat("yyyy-MM");
+
 
     private JLabel lblSaldoTotalValor;
     private JLabel lblTotalDespesasMesValor;
@@ -57,6 +59,7 @@ public class TelaResumoDetalhado extends JPanel {
     private JPanel painelGastosChartContainer;
     private JPanel painelPrincipaisRendasLista;
     private JPanel painelPrincipaisGastosLista;
+    private JLabel lblDataAtual; // Tornar acessível para atualizar a data também
 
     public TelaResumoDetalhado(String cpfUsuario) {
         this.cpfUsuario = cpfUsuario;
@@ -65,18 +68,39 @@ public class TelaResumoDetalhado extends JPanel {
         setBackground(Color.DARK_GRAY.darker());
 
         initComponents();
-        carregarDados();
+        carregarDados(); // Carga inicial dos dados
     }
 
     private void initComponents() {
-        JPanel painelSuperior = new JPanel(new BorderLayout());
+        // Painel Superior (Data e Botão Atualizar)
+        JPanel painelSuperior = new JPanel(new BorderLayout(10,0)); // Espaçamento horizontal entre data e botão
         painelSuperior.setOpaque(false);
-        JLabel lblDataAtual = new JLabel("DATA: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        
+        lblDataAtual = new JLabel("DATA: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         lblDataAtual.setFont(new Font("SansSerif", Font.BOLD, 16));
         lblDataAtual.setForeground(Color.WHITE);
         painelSuperior.add(lblDataAtual, BorderLayout.WEST);
+
+        JButton btnAtualizar = new JButton("Atualizar");
+        btnAtualizar.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        btnAtualizar.setToolTipText("Recarregar informações financeiras");
+        // Estilização simples para o botão de atualizar
+        btnAtualizar.setBackground(new Color(90, 90, 90));
+        btnAtualizar.setForeground(Color.WHITE);
+        btnAtualizar.setFocusPainted(false);
+        btnAtualizar.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
+
+        btnAtualizar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                carregarDados(); // Chama o método para recarregar todos os dados
+            }
+        });
+        painelSuperior.add(btnAtualizar, BorderLayout.EAST);
+        
         add(painelSuperior, BorderLayout.NORTH);
 
+        // Painel Principal (Colunas)
         JPanel painelPrincipal = new JPanel(new GridLayout(1, 3, 10, 10));
         painelPrincipal.setOpaque(false);
 
@@ -210,7 +234,7 @@ public class TelaResumoDetalhado extends JPanel {
         JTable tabelaUltimasTransacoes = new JTable(modeloUltimasTransacoes);
         tabelaUltimasTransacoes.setFont(new Font("SansSerif", Font.PLAIN, 12));
         tabelaUltimasTransacoes.setRowHeight(20);
-        tabelaUltimasTransacoes.setOpaque(false);
+        tabelaUltimasTransacoes.setOpaque(false); 
         tabelaUltimasTransacoes.setShowGrid(false);
         tabelaUltimasTransacoes.setForeground(Color.LIGHT_GRAY);
 
@@ -218,8 +242,8 @@ public class TelaResumoDetalhado extends JPanel {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                ((JComponent) c).setOpaque(false);
-                if (value instanceof String) {
+                ((JComponent) c).setOpaque(false); 
+                if (value instanceof String) { 
                      setHorizontalAlignment(JLabel.LEFT);
                 }
                 return c;
@@ -227,7 +251,7 @@ public class TelaResumoDetalhado extends JPanel {
         };
         tabelaUltimasTransacoes.getColumnModel().getColumn(0).setCellRenderer(transparentRenderer);
         tabelaUltimasTransacoes.getColumnModel().getColumn(1).setCellRenderer(transparentRenderer);
-
+        
         tabelaUltimasTransacoes.getColumnModel().getColumn(2).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
@@ -238,7 +262,7 @@ public class TelaResumoDetalhado extends JPanel {
                     setForeground(val < 0 ? new Color(255, 100, 100) : new Color(100, 255, 100));
                 }
                 setHorizontalAlignment(JLabel.RIGHT);
-                ((JComponent) c).setOpaque(false);
+                ((JComponent) c).setOpaque(false); 
                 return c;
             }
         });
@@ -314,30 +338,86 @@ public class TelaResumoDetalhado extends JPanel {
         return coluna;
     }
 
+    // Método público para permitir atualização externa, se necessário
+    public void atualizarDados() {
+        carregarDados();
+    }
+
     private void carregarDados() {
+        // Atualiza a data exibida para a data atual no momento do carregamento
+        if (lblDataAtual != null) { // Verifica se o label já foi inicializado
+            lblDataAtual.setText("DATA: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        }
+
         LocalDate hoje = LocalDate.now();
-        YearMonth mesAtual = YearMonth.from(hoje);
-        String inicioMes = mesAtual.atDay(1).format(DateTimeFormatter.ISO_DATE);
-        String fimMes = mesAtual.atEndOfMonth().format(DateTimeFormatter.ISO_DATE);
+        YearMonth mesAtualYrMo = YearMonth.from(hoje);
+        String inicioMesAtualStr = mesAtualYrMo.atDay(1).format(DateTimeFormatter.ISO_DATE);
+        String fimMesAtualStr = mesAtualYrMo.atEndOfMonth().format(DateTimeFormatter.ISO_DATE);
         String nomeMesAtual = hoje.getMonth().getDisplayName(TextStyle.FULL, new Locale("pt", "BR")).toUpperCase();
+        String anoMesAtualStr = sdfAnoMes.format(Date.from(hoje.atStartOfDay(ZoneId.systemDefault()).toInstant()));
 
-        double saldoTotalAtual = 2085.00; // Placeholder
+        // --- SALDO TOTAL DINÂMICO ---
+        List<Renda> todasRendasUsuario = RendaDAO.listarRendasPorUsuario(cpfUsuario);
+        double somaTotalRendas = todasRendasUsuario.stream().mapToDouble(Renda::getValor).sum();
+
+        List<Gasto> todosGastosUsuario = GastoDAO.listarGastosPorUsuario(cpfUsuario);
+        double somaTotalGastos = todosGastosUsuario.stream().mapToDouble(Gasto::getValor).sum();
+        
+        double saldoTotalAtual = somaTotalRendas - somaTotalGastos;
         lblSaldoTotalValor.setText(df.format(saldoTotalAtual));
-
-        List<Gasto> gastosMes = GastoDAO.listarGastosFiltrados(cpfUsuario, inicioMes, fimMes, null, null, null);
-        double totalDespesasMes = gastosMes.stream().mapToDouble(Gasto::getValor).sum();
+        
+        // --- TOTAIS DO MÊS ATUAL ---
+        List<Gasto> gastosMesAtual = todosGastosUsuario.stream()
+            .filter(g -> {
+                String anoMesGastoStr = sdfAnoMes.format(g.getDataGasto());
+                return anoMesGastoStr.equals(anoMesAtualStr);
+            })
+            .collect(Collectors.toList());
+        double totalDespesasMes = gastosMesAtual.stream().mapToDouble(Gasto::getValor).sum();
         lblTotalDespesasMesValor.setText("TOTAL DE DESPESAS (" + nomeMesAtual + "): " + df.format(totalDespesasMes));
 
-        List<Renda> rendasMes = RendaDAO.listarRendasFiltradas(cpfUsuario, inicioMes, fimMes, null, null, null);
-        double totalRendaMes = rendasMes.stream().mapToDouble(Renda::getValor).sum();
+        List<Renda> rendasMesAtual = todasRendasUsuario.stream()
+            .filter(r -> {
+                String anoMesRendaStr = sdfAnoMes.format(r.getDataRenda());
+                return anoMesRendaStr.equals(anoMesAtualStr);
+            })
+            .collect(Collectors.toList());
+        double totalRendaMes = rendasMesAtual.stream().mapToDouble(Renda::getValor).sum();
         lblTotalRendaMesValor.setText("TOTAL DE RENDA (" + nomeMesAtual + "): " + df.format(totalRendaMes));
 
-        double gastosFuturos = 1652.90; // Placeholder
-        double rendasFuturas = 0.00;    // Placeholder
-        lblGastosFuturosValor.setText("GASTOS A SEREM DESCONTADOS: " + df.format(gastosFuturos));
-        lblRendaFuturaValor.setText("RENDA A SER RECEBIDA: " + df.format(rendasFuturas));
+        // --- GASTOS E RENDAS FUTURAS/RECORRENTES ---
+        double gastosFuturosCalculado = 0;
+        double rendasFuturasCalculado = 0;
 
-        double previsaoSaldo = saldoTotalAtual - gastosFuturos + rendasFuturas;
+        for (Gasto g : todosGastosUsuario) {
+            String anoMesGastoStr = sdfAnoMes.format(g.getDataGasto());
+            LocalDate dataGastoLocalDate = ((java.sql.Date) g.getDataGasto()).toLocalDate();
+
+            if (g.isEhRecorrente() && anoMesGastoStr.compareTo(anoMesAtualStr) < 0) {
+                gastosFuturosCalculado += g.getValor();
+            }
+            else if (!g.isEhRecorrente() && anoMesGastoStr.equals(anoMesAtualStr) && dataGastoLocalDate.isAfter(hoje)) {
+                 gastosFuturosCalculado += g.getValor();
+            }
+        }
+
+        for (Renda r : todasRendasUsuario) {
+            String anoMesRendaStr = sdfAnoMes.format(r.getDataRenda());
+            LocalDate dataRendaLocalDate = ((java.sql.Date) r.getDataRenda()).toLocalDate();
+
+            if (r.isEhRecorrente() && anoMesRendaStr.compareTo(anoMesAtualStr) < 0) {
+                rendasFuturasCalculado += r.getValor();
+            }
+             else if (!r.isEhRecorrente() && anoMesRendaStr.equals(anoMesAtualStr) && dataRendaLocalDate.isAfter(hoje)) {
+                 rendasFuturasCalculado += r.getValor();
+            }
+        }
+
+        lblGastosFuturosValor.setText("GASTOS A SEREM DESCONTADOS: " + df.format(gastosFuturosCalculado));
+        lblRendaFuturaValor.setText("RENDA A SER RECEBIDA: " + df.format(rendasFuturasCalculado));
+        
+        // --- PREVISÃO DE SALDO ---
+        double previsaoSaldo = saldoTotalAtual - gastosFuturosCalculado + rendasFuturasCalculado;
         lblPrevisaoSaldoValor.setText(df.format(previsaoSaldo));
         if (previsaoSaldo >= 0) {
             lblPrevisaoStatus.setText("Fechar o mês " + nomeMesAtual + " POSITIVO");
@@ -347,18 +427,20 @@ public class TelaResumoDetalhado extends JPanel {
             lblPrevisaoStatus.setForeground(new Color(255, 100, 100));
         }
 
+        // --- BALANÇO MENSAL ---
         painelBalancoMensalConteudo.removeAll();
         for (int i = 1; i <= 6; i++) {
-            YearMonth mesAnteriorLoop = mesAtual.minusMonths(i);
-            String inicioMesAnterior = mesAnteriorLoop.atDay(1).format(DateTimeFormatter.ISO_DATE);
-            String fimMesAnterior = mesAnteriorLoop.atEndOfMonth().format(DateTimeFormatter.ISO_DATE);
+            YearMonth mesAnteriorLoop = mesAtualYrMo.minusMonths(i);
             String nomeMesAnterior = mesAnteriorLoop.getMonth().getDisplayName(TextStyle.FULL, new Locale("pt", "BR")).toUpperCase();
+            String anoMesAnteriorStr = sdfAnoMes.format(Date.from(mesAnteriorLoop.atDay(1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
 
-            List<Gasto> gastosMesAnterior = GastoDAO.listarGastosFiltrados(cpfUsuario, inicioMesAnterior, fimMesAnterior, null, null, null);
-            double totalDespesasMesAnterior = gastosMesAnterior.stream().mapToDouble(Gasto::getValor).sum();
+            double totalDespesasMesAnterior = todosGastosUsuario.stream()
+                .filter(g -> sdfAnoMes.format(g.getDataGasto()).equals(anoMesAnteriorStr))
+                .mapToDouble(Gasto::getValor).sum();
 
-            List<Renda> rendasMesAnterior = RendaDAO.listarRendasFiltradas(cpfUsuario, inicioMesAnterior, fimMesAnterior, null, null, null);
-            double totalRendaMesAnterior = rendasMesAnterior.stream().mapToDouble(Renda::getValor).sum();
+            double totalRendaMesAnterior = todasRendasUsuario.stream()
+                .filter(r -> sdfAnoMes.format(r.getDataRenda()).equals(anoMesAnteriorStr))
+                .mapToDouble(Renda::getValor).sum();
 
             double balancoDoMes = totalRendaMesAnterior - totalDespesasMesAnterior;
             JLabel lblBalancoItem = new JLabel(nomeMesAnterior + " - " + df.format(balancoDoMes));
@@ -369,24 +451,12 @@ public class TelaResumoDetalhado extends JPanel {
         painelBalancoMensalConteudo.revalidate();
         painelBalancoMensalConteudo.repaint();
 
+        // --- ÚLTIMAS TRANSAÇÕES ---
         modeloUltimasTransacoes.setRowCount(0);
         List<TransacaoResumo> ultimasTransacoes = new ArrayList<>();
-        List<Gasto> todosGastos = GastoDAO.listarGastosPorUsuario(cpfUsuario);
-        for (Gasto g : todosGastos) {
-            ultimasTransacoes.add(new TransacaoResumo(
-                    g.getDataGasto(),
-                    g.getDescricao(),
-                    -g.getValor()
-            ));
-        }
-        List<Renda> todasRendas = RendaDAO.listarRendasPorUsuario(cpfUsuario);
-        for (Renda r : todasRendas) {
-            ultimasTransacoes.add(new TransacaoResumo(
-                    r.getDataRenda(),
-                    r.getDescricao(),
-                    r.getValor()
-            ));
-        }
+        todosGastosUsuario.forEach(g -> ultimasTransacoes.add(new TransacaoResumo(g.getDataGasto(), g.getDescricao(), -g.getValor())));
+        todasRendasUsuario.forEach(r -> ultimasTransacoes.add(new TransacaoResumo(r.getDataRenda(), r.getDescricao(), r.getValor())));
+        
         Collections.sort(ultimasTransacoes, Comparator.comparing(TransacaoResumo::getData).reversed());
         int count = 0;
         for (TransacaoResumo tr : ultimasTransacoes) {
@@ -397,23 +467,24 @@ public class TelaResumoDetalhado extends JPanel {
             }
         }
 
-        Map<String, Double> rendasPorCategoria = rendasMes.stream()
+        // --- GRÁFICOS DE PIZZA ---
+        Map<String, Double> rendasPorCategoria = rendasMesAtual.stream()
                 .collect(Collectors.groupingBy(
-                        r -> {
-                            return r.getNomeCategoria() != null ? r.getNomeCategoria() : "Cat. " + r.getIdCategoria();
-                        },
+                        r -> r.getNomeCategoria() != null ? r.getNomeCategoria() : "Cat. " + r.getIdCategoria(),
                         Collectors.summingDouble(Renda::getValor)
                 ));
         atualizarGraficoPizza(painelRendasChartContainer, "Principais Rendas", rendasPorCategoria, painelPrincipaisRendasLista, totalRendaMes, Color.GREEN.darker());
 
-        Map<String, Double> gastosPorCategoria = gastosMes.stream()
+        Map<String, Double> gastosPorCategoria = gastosMesAtual.stream()
                 .collect(Collectors.groupingBy(
-                        g -> {
-                             return g.getNomeCategoria() != null ? g.getNomeCategoria() : "Cat. " + g.getIdCategoria();
-                        },
+                        g -> g.getNomeCategoria() != null ? g.getNomeCategoria() : "Cat. " + g.getIdCategoria(),
                         Collectors.summingDouble(Gasto::getValor)
                 ));
         atualizarGraficoPizza(painelGastosChartContainer, "Principais Gastos", gastosPorCategoria, painelPrincipaisGastosLista, totalDespesasMes, Color.RED.darker());
+    
+        // Força a repintura de todo o painel para garantir que as atualizações visuais sejam aplicadas
+        this.revalidate();
+        this.repaint();
     }
 
     private void atualizarGraficoPizza(JPanel container, String tituloExterno, Map<String, Double> dados, JPanel listaContainer, double totalValorMes, Color defaultColor) {
@@ -449,20 +520,18 @@ public class TelaResumoDetalhado extends JPanel {
         }
 
         JFreeChart chart = ChartFactory.createPieChart(
-                null, // Título do gráfico é null, pois usamos um JLabel externo
+                null, 
                 dataset,
-                false, // Não mostrar legenda padrão no gráfico
-                true,  // Habilitar tooltips
-                false  // Não usar URLs
+                false, 
+                true,  
+                false  
         );
-        chart.setBackgroundPaint(null); // Fundo do gráfico transparente
+        chart.setBackgroundPaint(null); 
 
-        // --- CORREÇÃO PARA NullPointerException ---
         TextTitle chartTitle = chart.getTitle();
         if (chartTitle != null) {
-            chartTitle.setVisible(false); // Esconde título padrão do JFreeChart somente se existir
+            chartTitle.setVisible(false); 
         }
-        // --- FIM DA CORREÇÃO ---
 
         PiePlot plot = (PiePlot) chart.getPlot();
         plot.setBackgroundPaint(null);
@@ -490,6 +559,7 @@ public class TelaResumoDetalhado extends JPanel {
                 listaContainer.add(lblItem);
             });
 
+        // Revalida e repinta os containers específicos do gráfico e da lista
         container.revalidate();
         container.repaint();
         listaContainer.revalidate();

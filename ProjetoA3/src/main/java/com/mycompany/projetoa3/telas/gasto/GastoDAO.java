@@ -1,181 +1,193 @@
 package com.mycompany.projetoa3.telas.gasto;
 
-import com.mycompany.projetoa3.ConexaoDB; // [cite: 222]
-import java.sql.Connection; // [cite: 222]
-import java.sql.PreparedStatement; // [cite: 222]
-import java.sql.ResultSet; // [cite: 222]
-import java.sql.SQLException; // [cite: 222]
-import java.util.ArrayList; // [cite: 222]
-import java.util.List; // [cite: 222]
+import com.mycompany.projetoa3.ConexaoDB;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GastoDAO {
 
     public static boolean inserirGasto(Gasto gasto) {
-        String sql = "INSERT INTO tb_gastos (descricao, categoria_id, data, valor, cpf_usuario) VALUES (?, ?, ?, ?, ?)"; // [cite: 222]
-        try (Connection conn = ConexaoDB.conectar(); // [cite: 223]
-             PreparedStatement stmt = conn.prepareStatement(sql)) { // [cite: 223]
-            stmt.setString(1, gasto.getDescricao()); // [cite: 223]
-            stmt.setInt(2, gasto.getIdCategoria()); // [cite: 223]
-            stmt.setDate(3, new java.sql.Date(gasto.getDataGasto().getTime())); // [cite: 223]
-            stmt.setDouble(4, gasto.getValor()); // [cite: 223]
-            stmt.setString(5, gasto.getCpfUsuario()); // [cite: 223]
-            stmt.executeUpdate(); // [cite: 224]
-            return true; // [cite: 224]
+        // Adicionar eh_recorrente ao SQL INSERT
+        String sql = "INSERT INTO tb_gastos (descricao, categoria_id, data, valor, cpf_usuario, eh_recorrente) VALUES (?, ?, ?, ?, ?, ?)";
+        try (Connection conn = ConexaoDB.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, gasto.getDescricao());
+            stmt.setInt(2, gasto.getIdCategoria()); // Usar getIdCategoria
+            stmt.setDate(3, new java.sql.Date(gasto.getDataGasto().getTime()));
+            stmt.setDouble(4, gasto.getValor());
+            stmt.setString(5, gasto.getCpfUsuario());
+            stmt.setBoolean(6, gasto.isEhRecorrente()); // Salvar o novo campo
+            stmt.executeUpdate();
+            return true;
         } catch (SQLException e) {
-            System.out.println("Erro ao inserir gasto: " + e.getMessage()); // [cite: 224]
-            return false; // [cite: 225]
+            System.err.println("Erro ao inserir gasto: " + e.getMessage());
+            e.printStackTrace(); // Ajuda a identificar o problema durante o desenvolvimento
+            return false;
         }
     }
 
     public static boolean atualizarGasto(Gasto gasto) {
-        String sql = "UPDATE tb_gastos SET descricao = ?, valor = ?, data = ?, categoria_id = ? WHERE id = ?"; // [cite: 225]
-        try (Connection conn = ConexaoDB.conectar(); // [cite: 226]
-             PreparedStatement stmt = conn.prepareStatement(sql)) { // [cite: 226]
-            stmt.setString(1, gasto.getDescricao()); // [cite: 226]
-            stmt.setDouble(2, gasto.getValor()); // [cite: 226]
-            stmt.setDate(3, new java.sql.Date(gasto.getDataGasto().getTime())); // [cite: 227]
-            stmt.setInt(4, gasto.getIdCategoria()); // [cite: 227]
-            stmt.setInt(5, gasto.getId()); // [cite: 227]
-            int linhasAtualizadas = stmt.executeUpdate(); // [cite: 227]
-            return linhasAtualizadas > 0; // [cite: 227]
+        // Adicionar eh_recorrente ao SQL UPDATE
+        String sql = "UPDATE tb_gastos SET descricao = ?, valor = ?, data = ?, categoria_id = ?, eh_recorrente = ? WHERE id = ?";
+        try (Connection conn = ConexaoDB.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, gasto.getDescricao());
+            stmt.setDouble(2, gasto.getValor());
+            stmt.setDate(3, new java.sql.Date(gasto.getDataGasto().getTime()));
+            stmt.setInt(4, gasto.getIdCategoria()); // Usar getIdCategoria
+            stmt.setBoolean(5, gasto.isEhRecorrente()); // Atualizar o novo campo
+            stmt.setInt(6, gasto.getId());
+            int linhasAtualizadas = stmt.executeUpdate();
+            return linhasAtualizadas > 0;
         } catch (SQLException e) {
-            System.out.println("Erro ao atualizar gasto: " + e.getMessage()); // [cite: 228]
-            return false; // [cite: 228]
+            System.err.println("Erro ao atualizar gasto: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
     }
 
     public static boolean excluirGasto(int id) {
-        String sql = "DELETE FROM tb_gastos WHERE id = ?"; // [cite: 229]
-        try (Connection conn = ConexaoDB.conectar(); // [cite: 230]
-             PreparedStatement stmt = conn.prepareStatement(sql)) { // [cite: 230]
-            stmt.setInt(1, id); // [cite: 230]
-            int linhasExcluidas = stmt.executeUpdate(); // [cite: 230]
-            return linhasExcluidas > 0; // [cite: 230]
+        String sql = "DELETE FROM tb_gastos WHERE id = ?";
+        try (Connection conn = ConexaoDB.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            int linhasExcluidas = stmt.executeUpdate();
+            return linhasExcluidas > 0;
         } catch (SQLException e) {
-            System.out.println("Erro ao excluir gasto: " + e.getMessage()); // [cite: 231]
-            return false; // [cite: 231]
+            System.err.println("Erro ao excluir gasto: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
     }
 
+    // Lista todos os gastos do sistema, incluindo nome da categoria e se é recorrente
     public static List<Gasto> listarGastos() {
         List<Gasto> lista = new ArrayList<>();
-        // CORRIGIDO: JOIN com tb_categorias para obter nome_categoria
-        String sql = "SELECT g.id, g.descricao, g.categoria_id, c.nome AS nome_categoria, g.data, g.valor, g.cpf_usuario " +
-                     "FROM tb_gastos g JOIN tb_categorias c ON g.categoria_id = c.id"; // [cite: 232] (SQL alterado)
-        try (Connection conn = ConexaoDB.conectar(); // [cite: 233]
+        String sql = "SELECT g.id, g.descricao, g.categoria_id, c.nome AS nome_categoria, g.data, g.valor, g.cpf_usuario, g.eh_recorrente " +
+                     "FROM tb_gastos g JOIN tb_categorias c ON g.categoria_id = c.id";
+        try (Connection conn = ConexaoDB.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) { // [cite: 233]
+             ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 Gasto gasto = new Gasto();
-                gasto.setId(rs.getInt("id")); // [cite: 233]
-                gasto.setDescricao(rs.getString("descricao")); // [cite: 233]
-                gasto.setIdCategoria(rs.getInt("categoria_id")); // [cite: 234]
-                gasto.setNomeCategoria(rs.getString("nome_categoria")); // Populado aqui! [cite: 234]
-                gasto.setDataGasto(rs.getDate("data")); // [cite: 234]
-                gasto.setValor(rs.getDouble("valor")); // [cite: 234]
-                // Se cpf_usuario for necessário no objeto Gasto em outros contextos:
-                // gasto.setCpfUsuario(rs.getString("cpf_usuario"));
-                lista.add(gasto); // [cite: 234]
+                gasto.setId(rs.getInt("id"));
+                gasto.setDescricao(rs.getString("descricao"));
+                gasto.setIdCategoria(rs.getInt("categoria_id")); // Usar setIdCategoria
+                gasto.setNomeCategoria(rs.getString("nome_categoria"));
+                gasto.setDataGasto(rs.getDate("data"));
+                gasto.setValor(rs.getDouble("valor"));
+                gasto.setCpfUsuario(rs.getString("cpf_usuario"));
+                gasto.setEhRecorrente(rs.getBoolean("eh_recorrente")); // Carregar o novo campo
+                lista.add(gasto);
             }
         } catch (SQLException e) {
-            System.out.println("Erro ao listar gastos: " + e.getMessage()); // [cite: 235]
+            System.err.println("Erro ao listar gastos: " + e.getMessage());
+            e.printStackTrace();
         }
-        return lista; // [cite: 235]
+        return lista;
     }
 
+    // Busca um gasto por ID, incluindo nome da categoria e se é recorrente
+    // Mantido com 'l' minúsculo ("Porld") para compatibilidade com TelaGastos.java do PDF,
+    // embora a convenção Java seja "PorId".
     public static Gasto buscarGastoPorld(int id) {
-        // CORRIGIDO: JOIN com tb_categorias para obter nome_categoria
-        String sql = "SELECT g.id, g.descricao, g.valor, g.data, g.categoria_id, c.nome AS nome_categoria, g.cpf_usuario " +
-                     "FROM tb_gastos g JOIN tb_categorias c ON g.categoria_id = c.id WHERE g.id = ?"; // [cite: 236] (SQL alterado)
-        try (Connection conn = ConexaoDB.conectar(); // [cite: 237]
-             PreparedStatement stmt = conn.prepareStatement(sql)) { // [cite: 237]
-            stmt.setInt(1, id); // [cite: 237]
+        String sql = "SELECT g.id, g.descricao, g.valor, g.data, g.categoria_id, c.nome AS nome_categoria, g.cpf_usuario, g.eh_recorrente " +
+                     "FROM tb_gastos g JOIN tb_categorias c ON g.categoria_id = c.id WHERE g.id = ?";
+        try (Connection conn = ConexaoDB.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
-            if (rs.next()) { // [cite: 238]
+            if (rs.next()) {
                 Gasto gasto = new Gasto();
-                gasto.setId(rs.getInt("id")); // [cite: 238]
-                gasto.setDescricao(rs.getString("descricao")); // [cite: 238]
-                gasto.setValor(rs.getDouble("valor")); // [cite: 238]
-                gasto.setDataGasto(rs.getDate("data")); // [cite: 238]
-                gasto.setIdCategoria(rs.getInt("categoria_id")); // [cite: 238]
-                gasto.setNomeCategoria(rs.getString("nome_categoria")); // Populado aqui!
-                // Se cpf_usuario for necessário:
-                // gasto.setCpfUsuario(rs.getString("cpf_usuario"));
-                return gasto; // [cite: 238]
+                gasto.setId(rs.getInt("id"));
+                gasto.setDescricao(rs.getString("descricao"));
+                gasto.setValor(rs.getDouble("valor"));
+                gasto.setDataGasto(rs.getDate("data"));
+                gasto.setIdCategoria(rs.getInt("categoria_id")); // Usar setIdCategoria
+                gasto.setNomeCategoria(rs.getString("nome_categoria"));
+                gasto.setCpfUsuario(rs.getString("cpf_usuario"));
+                gasto.setEhRecorrente(rs.getBoolean("eh_recorrente")); // Carregar o novo campo
+                return gasto;
             }
         } catch (SQLException e) {
-            System.out.println("Erro ao buscar gasto: " + e.getMessage()); // [cite: 239]
+            System.err.println("Erro ao buscar gasto por ID: " + e.getMessage());
+            e.printStackTrace();
         }
-        return null; // [cite: 239]
+        return null;
     }
 
+    // Lista gastos por usuário, incluindo nome da categoria e se é recorrente
     public static List<Gasto> listarGastosPorUsuario(String cpfUsuario) {
         List<Gasto> lista = new ArrayList<>();
-        // CORRIGIDO: JOIN com tb_categorias para obter nome_categoria
-        String sql = "SELECT g.id, g.descricao, g.categoria_id, c.nome AS nome_categoria, g.data, g.valor " +
+        String sql = "SELECT g.id, g.descricao, g.categoria_id, c.nome AS nome_categoria, g.data, g.valor, g.eh_recorrente " +
                      "FROM tb_gastos g JOIN tb_categorias c ON g.categoria_id = c.id " +
-                     "WHERE g.cpf_usuario = ?"; // [cite: 241] (SQL alterado)
-        try (Connection conn = ConexaoDB.conectar(); // [cite: 242]
-             PreparedStatement stmt = conn.prepareStatement(sql)) { // [cite: 242]
-            stmt.setString(1, cpfUsuario); // [cite: 242]
-            try (ResultSet rs = stmt.executeQuery()) { // [cite: 243]
+                     "WHERE g.cpf_usuario = ? ORDER BY g.data DESC"; // Ordena por data mais recente
+        try (Connection conn = ConexaoDB.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, cpfUsuario);
+            try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Gasto gasto = new Gasto();
-                    gasto.setId(rs.getInt("id")); // [cite: 243]
-                    gasto.setDescricao(rs.getString("descricao")); // [cite: 243]
-                    gasto.setIdCategoria(rs.getInt("categoria_id")); // [cite: 243]
-                    gasto.setNomeCategoria(rs.getString("nome_categoria")); // Populado aqui!
-                    gasto.setDataGasto(rs.getDate("data")); // [cite: 244]
-                    gasto.setValor(rs.getDouble("valor")); // [cite: 244]
-                    gasto.setCpfUsuario(cpfUsuario); // [cite: 244]
-                    lista.add(gasto); // [cite: 244]
+                    gasto.setId(rs.getInt("id"));
+                    gasto.setDescricao(rs.getString("descricao"));
+                    gasto.setIdCategoria(rs.getInt("categoria_id")); // Usar setIdCategoria
+                    gasto.setNomeCategoria(rs.getString("nome_categoria"));
+                    gasto.setDataGasto(rs.getDate("data"));
+                    gasto.setValor(rs.getDouble("valor"));
+                    gasto.setCpfUsuario(cpfUsuario); // CPF já é conhecido, mas pode ser pego do rs se a query mudar
+                    gasto.setEhRecorrente(rs.getBoolean("eh_recorrente")); // Carregar o novo campo
+                    lista.add(gasto);
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Erro ao listar gastos por usuário: " + e.getMessage()); // [cite: 244]
+            System.err.println("Erro ao listar gastos por usuário: " + e.getMessage());
+            e.printStackTrace();
         }
-        return lista; // [cite: 244]
+        return lista;
     }
 
+    // Lista gastos filtrados, incluindo nome da categoria e se é recorrente
     public static List<Gasto> listarGastosFiltrados(
             String cpfUsuario,
             String dataInicio, // Espera-se formato "YYYY-MM-DD"
             String dataFim,    // Espera-se formato "YYYY-MM-DD"
             Double valorMin,
             Double valorMax,
-            String nomeCategoriaFiltro) { // Nome da categoria para filtrar, não o ID
+            String nomeCategoriaFiltro) {
         List<Gasto> lista = new ArrayList<>();
-        // SQL já faz o JOIN, apenas garantir que c.nome seja selecionado e usado.
         StringBuilder sql = new StringBuilder(
-            "SELECT g.id, g.data, g.descricao, g.categoria_id, c.nome AS nome_categoria, g.valor, g.cpf_usuario " +
-            "FROM tb_gastos g JOIN tb_categorias c ON g.categoria_id = c.id " + // [cite: 246]
-            "WHERE g.cpf_usuario = ?" // [cite: 246]
+            "SELECT g.id, g.data, g.descricao, g.categoria_id, c.nome AS nome_categoria, g.valor, g.cpf_usuario, g.eh_recorrente " +
+            "FROM tb_gastos g JOIN tb_categorias c ON g.categoria_id = c.id " +
+            "WHERE g.cpf_usuario = ?"
         );
         List<Object> params = new ArrayList<>();
-        params.add(cpfUsuario); // [cite: 247]
+        params.add(cpfUsuario);
 
-        if (dataInicio != null && !dataInicio.isEmpty()) {
-            sql.append(" AND g.data >= ?"); // [cite: 247]
-            params.add(java.sql.Date.valueOf(dataInicio)); // [cite: 247]
+        if (dataInicio != null && !dataInicio.trim().isEmpty()) {
+            sql.append(" AND g.data >= ?");
+            params.add(java.sql.Date.valueOf(dataInicio));
         }
-        if (dataFim != null && !dataFim.isEmpty()) {
-            sql.append(" AND g.data <= ?"); // [cite: 247]
-            params.add(java.sql.Date.valueOf(dataFim)); // [cite: 247]
+        if (dataFim != null && !dataFim.trim().isEmpty()) {
+            sql.append(" AND g.data <= ?");
+            params.add(java.sql.Date.valueOf(dataFim));
         }
         if (valorMin != null) {
-            sql.append(" AND g.valor >= ?"); // [cite: 247]
-            params.add(valorMin); // [cite: 247]
+            sql.append(" AND g.valor >= ?");
+            params.add(valorMin);
         }
         if (valorMax != null) {
-            sql.append(" AND g.valor <= ?"); // [cite: 247]
-            params.add(valorMax); // [cite: 247]
+            sql.append(" AND g.valor <= ?");
+            params.add(valorMax);
         }
-        // O filtro por nomeCategoria já está na query JOIN, agora aplicamos o WHERE nele
         if (nomeCategoriaFiltro != null && !nomeCategoriaFiltro.trim().isEmpty()) {
-            sql.append(" AND c.nome = ?"); // [cite: 247]
-            params.add(nomeCategoriaFiltro); // [cite: 247]
+            sql.append(" AND c.nome = ?");
+            params.add(nomeCategoriaFiltro);
         }
-        sql.append(" ORDER BY g.data DESC, g.valor DESC"); // [cite: 248] (data adicionada para melhor visualização)
+        sql.append(" ORDER BY g.data DESC, g.valor DESC"); // Ordena por data mais recente e depois por valor
 
         try (Connection conn = ConexaoDB.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
@@ -183,22 +195,22 @@ public class GastoDAO {
                 stmt.setObject(i + 1, params.get(i));
             }
             ResultSet rs = stmt.executeQuery();
-            // A parte de popular a lista estava faltando no PDF[cite: 248], adicionada abaixo:
             while (rs.next()) {
                 Gasto gasto = new Gasto();
                 gasto.setId(rs.getInt("id"));
                 gasto.setDataGasto(rs.getDate("data"));
                 gasto.setDescricao(rs.getString("descricao"));
-                gasto.setIdCategoria(rs.getInt("categoria_id"));
-                gasto.setNomeCategoria(rs.getString("nome_categoria")); // Populado aqui!
+                gasto.setIdCategoria(rs.getInt("categoria_id")); // Usar setIdCategoria
+                gasto.setNomeCategoria(rs.getString("nome_categoria"));
                 gasto.setValor(rs.getDouble("valor"));
-                gasto.setCpfUsuario(rs.getString("cpf_usuario"));
+                gasto.setCpfUsuario(rs.getString("cpf_usuario")); // Pega o CPF do resultado da query
+                gasto.setEhRecorrente(rs.getBoolean("eh_recorrente")); // Carregar o novo campo
                 lista.add(gasto);
             }
         } catch (SQLException e) {
-            System.out.println("Erro ao listar gastos filtrados: " + e.getMessage());
-            e.printStackTrace(); // Para debug
+            System.err.println("Erro ao listar gastos filtrados: " + e.getMessage());
+            e.printStackTrace();
         }
-        return lista; // [cite: 248]
+        return lista;
     }
 }

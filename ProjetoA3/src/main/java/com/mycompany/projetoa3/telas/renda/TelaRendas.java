@@ -1,16 +1,14 @@
 package com.mycompany.projetoa3.telas.renda;
 
-import java.sql.Date;
-import com.mycompany.projetoa3.Categoria;
-import com.mycompany.projetoa3.CategoriaDAO;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
-import java.util.HashMap;
+import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -23,9 +21,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableRowSorter;
+import javax.swing.table.TableRowSorter; // Usado no PDF original
 
 public class TelaRendas extends JPanel {
+
     private JTable tabelaRendas;
     private DefaultTableModel modeloTabela;
     private String cpfUsuario;
@@ -37,115 +36,104 @@ public class TelaRendas extends JPanel {
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(10,10));
+        setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
 
-        modeloTabela = new DefaultTableModel(new Object[]{"ID", "Data", "Descrição", "Valor", "Categoria"}, 0) {
+        // Modelo da tabela agora com a coluna "Recorrente"
+        modeloTabela = new DefaultTableModel(new Object[]{"ID", "Data", "Descrição", "Valor", "Categoria", "Recorrente"}, 0) {
+            @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
 
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                return switch (columnIndex) {
-                    case 0 -> Integer.class;
-                    case 1 -> Date.class;
-                    case 3 -> Double.class;
-                    default -> String.class;
-                };
+                 switch (columnIndex) {
+                    case 0: return Integer.class; // ID
+                    case 1: return java.util.Date.class; // Data
+                    case 3: return Double.class;  // Valor
+                    case 5: return String.class; // Recorrente
+                    default: return String.class; // Descrição, Categoria
+                }
             }
         };
 
         tabelaRendas = new JTable(modeloTabela);
         tabelaRendas.setRowHeight(25);
         tabelaRendas.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        tabelaRendas.setGridColor(Color.BLACK);
+        tabelaRendas.setGridColor(new Color(220,220,220));
+        tabelaRendas.setFillsViewportHeight(true);
 
-        // Personalizar cabeçalho
         JTableHeader header = tabelaRendas.getTableHeader();
         header.setFont(new Font("SansSerif", Font.BOLD, 14));
-        header.setBackground(Color.BLACK);
+        header.setBackground(new Color(34, 139, 34)); // Verde floresta
         header.setForeground(Color.WHITE);
         header.setReorderingAllowed(false);
-        
-        header.setBorder(BorderFactory.createEmptyBorder());
-        
-        // Zebra + coluna valor vermelha
-        DefaultTableCellRenderer zebraRenderer = new DefaultTableCellRenderer() {
+        header.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+
+        DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
-                boolean isSelected, boolean hasFocus, int row, int column) {
+                                                           boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
                 if (isSelected) {
-                    c.setBackground(new Color(255, 100, 100));
-                    c.setForeground(Color.WHITE);
+                    c.setBackground(new Color(144, 238, 144)); // Verde claro para seleção
+                    c.setForeground(Color.BLACK);
                 } else {
                     c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
-                    c.setForeground(column == 3 ? new Color(0, 160, 0) : Color.BLACK);
+                    c.setForeground(Color.BLACK);
                 }
 
-                setHorizontalAlignment(SwingConstants.CENTER);
+                setHorizontalAlignment(SwingConstants.LEFT);
 
-                // Se for a coluna de valor, aplicar formatação numérica
-                if (column == 3 && value instanceof Number) {
-                    setText(String.format("%.2f", ((Number) value).doubleValue()));
+                if (column == 3 && value instanceof Number) { // Coluna Valor
+                    setText(String.format("R$ %.2f", ((Number) value).doubleValue()));
+                    c.setForeground(new Color(0, 100, 0)); // Verde escuro para valor da renda
+                    setHorizontalAlignment(SwingConstants.RIGHT);
+                } else if (column == 1 && value instanceof java.util.Date) { // Coluna Data
+                     setText(new SimpleDateFormat("dd/MM/yyyy").format(value));
+                     setHorizontalAlignment(SwingConstants.CENTER);
+                } else if (column == 5) { // Coluna Recorrente
+                    setHorizontalAlignment(SwingConstants.CENTER);
                 }
-
                 return c;
             }
         };
 
         for (int i = 0; i < tabelaRendas.getColumnCount(); i++) {
-            tabelaRendas.getColumnModel().getColumn(i).setCellRenderer(zebraRenderer);
+            tabelaRendas.getColumnModel().getColumn(i).setCellRenderer(cellRenderer);
         }
 
-        // Esconder coluna ID
         tabelaRendas.getColumnModel().getColumn(0).setMinWidth(0);
         tabelaRendas.getColumnModel().getColumn(0).setMaxWidth(0);
         tabelaRendas.getColumnModel().getColumn(0).setWidth(0);
+        
+        tabelaRendas.getColumnModel().getColumn(1).setPreferredWidth(100);
+        tabelaRendas.getColumnModel().getColumn(2).setPreferredWidth(250);
+        tabelaRendas.getColumnModel().getColumn(3).setPreferredWidth(120);
+        tabelaRendas.getColumnModel().getColumn(4).setPreferredWidth(150);
+        tabelaRendas.getColumnModel().getColumn(5).setPreferredWidth(100);
 
-        // Filtro e ordenação
+
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(modeloTabela);
         tabelaRendas.setRowSorter(sorter);
 
-        sorter.setComparator(4, (cat1, cat2) -> {
-            Map<String, Integer> frequenciaCategorias = new HashMap<>();
-            for (int i = 0; i < modeloTabela.getRowCount(); i++) {
-                String categoria = modeloTabela.getValueAt(i, 4).toString();
-                frequenciaCategorias.put(categoria, frequenciaCategorias.getOrDefault(categoria, 0) + 1);
-            }
-            int freq1 = frequenciaCategorias.getOrDefault(cat1.toString(), 0);
-            int freq2 = frequenciaCategorias.getOrDefault(cat2.toString(), 0);
-            if (freq1 != freq2) {
-                return Integer.compare(freq2, freq1);
-            }
-            return cat1.toString().compareTo(cat2.toString());
-        });
-
         JScrollPane scroll = new JScrollPane(tabelaRendas);
-        
-        JButton btnAdicionar = new JButton("Adicionar");
+        scroll.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+
+        JButton btnAdicionar = new JButton("Adicionar Renda");
+        personalizarBotao(btnAdicionar);
         btnAdicionar.addActionListener(e -> abrirAdicionarRenda());
-        btnAdicionar.setFocusPainted(false);
-        btnAdicionar.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        btnAdicionar.setBackground(Color.LIGHT_GRAY);
-        btnAdicionar.setPreferredSize(new Dimension(120, 20));
 
-        JButton btnEditar = new JButton("Editar");
+        JButton btnEditar = new JButton("Editar Renda");
+        personalizarBotao(btnEditar);
         btnEditar.addActionListener(e -> editarRendaSelecionada());
-        btnEditar.setFocusPainted(false);
-        btnEditar.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        btnEditar.setBackground(Color.LIGHT_GRAY);
-        btnEditar.setPreferredSize(new Dimension(120, 20));
 
-        JButton btnExcluir = new JButton("Excluir");
+        JButton btnExcluir = new JButton("Excluir Renda");
+        personalizarBotao(btnExcluir);
         btnExcluir.addActionListener(e -> excluirRendaSelecionada());
-        btnExcluir.setFocusPainted(false);
-        btnExcluir.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        btnExcluir.setBackground(Color.LIGHT_GRAY);
-        btnExcluir.setPreferredSize(new Dimension(120, 20));
 
-        JPanel painelBotoes = new JPanel();
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         painelBotoes.add(btnAdicionar);
         painelBotoes.add(btnEditar);
         painelBotoes.add(btnExcluir);
@@ -153,29 +141,37 @@ public class TelaRendas extends JPanel {
         add(scroll, BorderLayout.CENTER);
         add(painelBotoes, BorderLayout.SOUTH);
     }
+    
+    private void personalizarBotao(JButton botao) {
+        botao.setFont(new Font("SansSerif", Font.BOLD, 12));
+        botao.setBackground(new Color(34,139,34)); // Verde para botões de renda
+        botao.setForeground(Color.WHITE);
+        botao.setFocusPainted(false);
+        botao.setPreferredSize(new Dimension(150, 35));
+        botao.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(24,129,24),1),
+            BorderFactory.createEmptyBorder(5,15,5,15)
+        ));
+    }
 
     private void carregarRendas() {
         modeloTabela.setRowCount(0);
         List<Renda> lista = RendaDAO.listarRendasPorUsuario(cpfUsuario);
         for (Renda r : lista) {
-            Categoria c = CategoriaDAO.listarCategoriasPorTipo(2).stream()
-                    .filter(cat -> cat.getIdCategoria() == r.getIdCategoria())
-                    .findFirst()
-                    .orElse(new Categoria("Categoria não encontrada", 1));
             modeloTabela.addRow(new Object[]{
-                    r.getId(),
-                    r.getDataRenda(),
-                    r.getDescricao(),
-                    r.getValor(),
-                    c.getNome()
+                r.getId(),
+                r.getDataRenda(),
+                r.getDescricao(),
+                r.getValor(),
+                r.getNomeCategoria(), // Assumindo que RendaDAO já popula isso
+                r.isEhRecorrente() ? "Sim" : "Não"
             });
         }
     }
 
     public void abrirAdicionarRenda() {
-        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        AdicionarRenda telaAdd = new AdicionarRenda(frame, cpfUsuario, this::atualizarTabela);
-        telaAdd.setLocationRelativeTo(frame);
+        JFrame framePai = (JFrame) SwingUtilities.getWindowAncestor(this);
+        AdicionarRenda telaAdd = new AdicionarRenda(framePai, cpfUsuario, this::atualizarTabela);
         telaAdd.setVisible(true);
     }
 
@@ -184,40 +180,45 @@ public class TelaRendas extends JPanel {
     }
 
     private void excluirRendaSelecionada() {
-        int linha = tabelaRendas.getSelectedRow();
-        if (linha >= 0) {
-            int idRenda = (int) modeloTabela.getValueAt(tabelaRendas.convertRowIndexToModel(linha), 0);
+        int linhaSelecionadaView = tabelaRendas.getSelectedRow();
+        if (linhaSelecionadaView >= 0) {
+            int linhaSelecionadaModel = tabelaRendas.convertRowIndexToModel(linhaSelecionadaView);
+            int idRenda = (int) modeloTabela.getValueAt(linhaSelecionadaModel, 0);
+
             int confirma = JOptionPane.showConfirmDialog(this,
                     "Deseja realmente excluir a renda selecionada?",
-                    "Confirmação", JOptionPane.YES_NO_OPTION);
+                    "Confirmação de Exclusão", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
             if (confirma == JOptionPane.YES_OPTION) {
                 if (RendaDAO.excluirRenda(idRenda)) {
-                    JOptionPane.showMessageDialog(this, "Renda excluída com sucesso!");
+                    JOptionPane.showMessageDialog(this, "Renda excluída com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                     atualizarTabela();
                 } else {
-                    JOptionPane.showMessageDialog(this, "Erro ao excluir renda.");
+                    JOptionPane.showMessageDialog(this, "Erro ao excluir renda.", "Erro", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } else {
-            JOptionPane.showMessageDialog(this, "Selecione um renda para excluir.");
+            JOptionPane.showMessageDialog(this, "Selecione uma renda para excluir.", "Aviso", JOptionPane.WARNING_MESSAGE);
         }
     }
 
     private void editarRendaSelecionada() {
-        int linhaSelecionada = tabelaRendas.getSelectedRow();
-        if (linhaSelecionada == -1) {
-            JOptionPane.showMessageDialog(this, "Selecione um renda para editar.");
+        int linhaSelecionadaView = tabelaRendas.getSelectedRow();
+        if (linhaSelecionadaView == -1) {
+            JOptionPane.showMessageDialog(this, "Selecione uma renda para editar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        int idRenda = (int) modeloTabela.getValueAt(tabelaRendas.convertRowIndexToModel(linhaSelecionada), 0);
-        Renda gasto = RendaDAO.buscarRendaPorld(idRenda);
-        if (gasto == null) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar renda para edição.");
+        int linhaSelecionadaModel = tabelaRendas.convertRowIndexToModel(linhaSelecionadaView);
+        int idRenda = (int) modeloTabela.getValueAt(linhaSelecionadaModel, 0);
+
+        Renda renda = RendaDAO.buscarRendaPorld(idRenda); // Nome do método como no PDF
+        if (renda == null) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar dados da renda para edição.", "Erro", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        EditarRenda editarDialog = new EditarRenda(frame, gasto, this::atualizarTabela);
-        editarDialog.setLocationRelativeTo(frame);
+
+        JFrame framePai = (JFrame) SwingUtilities.getWindowAncestor(this);
+        EditarRenda editarDialog = new EditarRenda(framePai, renda, this::atualizarTabela);
         editarDialog.setVisible(true);
     }
 }

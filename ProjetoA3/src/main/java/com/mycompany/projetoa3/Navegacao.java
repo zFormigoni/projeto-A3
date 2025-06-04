@@ -85,6 +85,10 @@ public class Navegacao extends JFrame {
             }
         });
     }
+    
+    public void atualizarSaudacaoPublic() {
+    atualizarSaudacao(); // Chama o método privado existente
+}
 
     private void atualizarSaudacao() {
         if (labelSaudacao != null) {
@@ -133,7 +137,7 @@ public class Navegacao extends JFrame {
         barra.add(painelSaudacao, BorderLayout.WEST);
 
         // Atualiza a saudação em tempo real a cada 30 segundos
-        new javax.swing.Timer(30000, e -> atualizarSaudacao()).start();
+        new javax.swing.Timer(10000, e -> atualizarSaudacao()).start();
 
         // Painel para os botões alinhados à direita
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10)); // Aumenta espaçamento
@@ -207,13 +211,4 @@ public class Navegacao extends JFrame {
             botao.setFont(botao.getFont().deriveFont(selecionado ? Font.BOLD : Font.PLAIN));
         }
     }
-     // Método main para teste, se necessário (pode ser removido se a TelaInicial for o entry point)
-    // public static void main(String[] args) {
-    //     SwingUtilities.invokeLater(() -> {
-    //         // Para testar, você pode mockar o cpf e tipo ou buscar de um login simulado
-    //         // SessaoUsuario.setNomeUsuario("Usuário Teste"); // Simula nome na sessão
-    //         // new Navegacao("Resumo", "12345678900", "padrao").setVisible(true);
-    //          new TelaInicial().setVisible(true); // Ou inicie pela TelaInicial
-    //     });
-    // }
 }
