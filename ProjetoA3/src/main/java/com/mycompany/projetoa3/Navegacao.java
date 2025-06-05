@@ -52,14 +52,16 @@ public class Navegacao extends JFrame {
         painelPrincipal.setBackground(Color.DARK_GRAY.darker()); // Cor de fundo para o painel principal
 
         // Telas comuns
-        // ***** ALTERAÇÃO PRINCIPAL AQUI *****
-        painelPrincipal.add(new TelaResumoDetalhado(cpfUsuario), "Resumo"); // Usa a nova tela
+        // ***** ALTERAÇÃO PRINCIPAL AQUI *****        
+        painelPrincipal.add(new TelaResumoDetalhado(cpfUsuario, tipoUsuario), "Resumo"); // Usa a nova tela
         painelPrincipal.add(new TelaGastos(cpfUsuario), "Gastos");
         painelPrincipal.add(new TelaRendas(cpfUsuario), "Renda");
         painelPrincipal.add(new TelaPerfil(cpfUsuario), "Perfil");
 
         // Telas de admin
         if (tipoUsuario != null && tipoUsuario.equalsIgnoreCase("admin")) {
+            painelPrincipal.add(new JTextField(11));
+
             painelPrincipal.add(new TelaAdmin(cpfUsuario, e -> trocarTela(e.getActionCommand())), "Admin");
             // As telas de gerenciamento são tipicamente acessadas a partir da TelaAdmin,
             // mas se precisar adicioná-las diretamente ao cardLayout:

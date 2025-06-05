@@ -10,10 +10,10 @@ public class ConexaoDB {
     // Conecta ao banco de dados
     public static Connection conectar() {
         String conGUSTAVO = "jdbc:mysql://localhost/db_a3";
-        String conVITOR = "jdbc:mysql://localhost/";
+        String conVITOR = "jdbc:mysql://localhost/db_a3";
         
-        //String conDB = "vitor";
-        String conDB = "gustavo";
+        String conDB = "vitor";
+        //String conDB = "gustavo";
         Connection conexao = null;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -44,7 +44,7 @@ public class ConexaoDB {
             stmt.executeUpdate();
             return true;
         } catch (SQLException e) {
-            System.out.println("Erro ao inserir usuário: " + e.getMessage());
+            System.out.println("Erro  ao inserir usuário: " + e.getMessage());
             return false;
         }
     }
