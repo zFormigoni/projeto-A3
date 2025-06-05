@@ -34,6 +34,7 @@ public class TelaGastos extends JPanel {
     private String cpfUsuario;
 
     public TelaGastos(String cpfUsuario) {
+        this.setBackground(new Color(45, 45, 45));
         this.cpfUsuario = cpfUsuario;
         initComponents();
         carregarGastos();
@@ -44,7 +45,7 @@ public class TelaGastos extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(10,10,10,10)); // Margem externa
 
         // Modelo da tabela agora com a coluna "Recorrente"
-        modeloTabela = new DefaultTableModel(
+        modeloTabela = new DefaultTableModel(      
             new Object[]{"ID", "Data", "Descrição", "Valor", "Categoria", "Recorrente"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -65,6 +66,7 @@ public class TelaGastos extends JPanel {
         };
 
         tabelaGastos = new JTable(modeloTabela);
+        tabelaGastos.setBackground(new Color(45, 45, 45));
         tabelaGastos.setRowHeight(25); // Altura da linha
         tabelaGastos.setFont(new Font("SansSerif", Font.PLAIN, 13));
         tabelaGastos.setGridColor(new Color(220,220,220)); // Cor da grade mais suave
@@ -75,7 +77,7 @@ public class TelaGastos extends JPanel {
         JTableHeader header = tabelaGastos.getTableHeader();
         header.setFont(new Font("SansSerif", Font.BOLD, 14));
         header.setBackground(new Color(70, 130, 180)); // Azul aço (cor de exemplo para gastos)
-        header.setForeground(Color.WHITE);
+        header.setForeground(Color.BLACK);
         header.setReorderingAllowed(false); // Impede que o usuário reordene as colunas
         header.setBorder(BorderFactory.createEmptyBorder(5,5,5,5)); // Padding no header
 
@@ -90,8 +92,8 @@ public class TelaGastos extends JPanel {
                     c.setBackground(new Color(173, 216, 230)); // Azul claro para linha selecionada
                     c.setForeground(Color.BLACK);
                 } else {
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240)); // Efeito zebrado
-                    c.setForeground(Color.BLACK);
+                    c.setBackground(row % 2 == 0 ? new Color(25, 25, 25) : new Color(45, 45, 45)); // Efeito zebrado
+                    c.setForeground(Color.WHITE);
                 }
                 
                 setHorizontalAlignment(SwingConstants.LEFT); // Alinhamento padrão à esquerda
@@ -148,6 +150,7 @@ public class TelaGastos extends JPanel {
         btnExcluir.addActionListener(e -> excluirGastoSelecionado());
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // FlowLayout para botões
+        painelBotoes.setBackground(new Color(45, 45, 45));
         painelBotoes.add(btnAdicionar);
         painelBotoes.add(btnEditar);
         painelBotoes.add(btnExcluir);

@@ -140,7 +140,12 @@ public class TelaEntrar extends JFrame {
                 SessaoUsuario.setNomeUsuario(nomeUsuario);
                 JOptionPane.showMessageDialog(this, "Login realizado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                 dispose();
-                new Navegacao("Resumo", cpf, tipoUsuario).setVisible(true);
+                if ("admin".equals(tipoUsuario)){
+                    new Navegacao("Resumo admin", cpf, tipoUsuario).setVisible(true);
+                } else {
+                    System.out.println("tela usuario");
+                    new Navegacao("Resumo", cpf, tipoUsuario).setVisible(true);
+                }
             } else {
                 JOptionPane.showMessageDialog(this, "CPF ou senha inválidos.", "Erro de Login", JOptionPane.ERROR_MESSAGE);
             }

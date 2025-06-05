@@ -30,6 +30,7 @@ public class TelaRendas extends JPanel {
     private String cpfUsuario;
 
     public TelaRendas(String cpfUsuario) {
+        this.setBackground(new Color(45, 45, 45));
         this.cpfUsuario = cpfUsuario;
         initComponents();
         carregarRendas();
@@ -59,6 +60,7 @@ public class TelaRendas extends JPanel {
         };
 
         tabelaRendas = new JTable(modeloTabela);
+        tabelaRendas.setBackground(new Color(45, 45, 45));
         tabelaRendas.setRowHeight(25);
         tabelaRendas.setFont(new Font("SansSerif", Font.PLAIN, 13));
         tabelaRendas.setGridColor(new Color(220,220,220));
@@ -67,7 +69,7 @@ public class TelaRendas extends JPanel {
         JTableHeader header = tabelaRendas.getTableHeader();
         header.setFont(new Font("SansSerif", Font.BOLD, 14));
         header.setBackground(new Color(34, 139, 34)); // Verde floresta
-        header.setForeground(Color.WHITE);
+        header.setForeground(Color.BLACK);
         header.setReorderingAllowed(false);
         header.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 
@@ -80,15 +82,15 @@ public class TelaRendas extends JPanel {
                     c.setBackground(new Color(144, 238, 144)); // Verde claro para seleção
                     c.setForeground(Color.BLACK);
                 } else {
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
-                    c.setForeground(Color.BLACK);
+                     c.setBackground(row % 2 == 0 ? new Color(25, 25, 25) : new Color(45, 45, 45)); // Efeito zebrado
+                    c.setForeground(Color.WHITE);
                 }
 
                 setHorizontalAlignment(SwingConstants.LEFT);
 
                 if (column == 3 && value instanceof Number) { // Coluna Valor
                     setText(String.format("R$ %.2f", ((Number) value).doubleValue()));
-                    c.setForeground(new Color(0, 100, 0)); // Verde escuro para valor da renda
+                    c.setForeground(new Color(0, 200, 0)); // Verde escuro para valor da renda
                     setHorizontalAlignment(SwingConstants.RIGHT);
                 } else if (column == 1 && value instanceof java.util.Date) { // Coluna Data
                      setText(new SimpleDateFormat("dd/MM/yyyy").format(value));
@@ -120,20 +122,22 @@ public class TelaRendas extends JPanel {
 
         JScrollPane scroll = new JScrollPane(tabelaRendas);
         scroll.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-
-        JButton btnAdicionar = new JButton("Adicionar Renda");
-        personalizarBotao(btnAdicionar);
+        
+        // Botões de Ação
+        JButton btnAdicionar = new JButton("Adicionar Gasto");
+        personalizarBotao(btnAdicionar, new Color(70, 130, 180), new Color(60,120,170));
         btnAdicionar.addActionListener(e -> abrirAdicionarRenda());
 
-        JButton btnEditar = new JButton("Editar Renda");
-        personalizarBotao(btnEditar);
+        JButton btnEditar = new JButton("Editar Gasto");
+        personalizarBotao(btnEditar, new Color(255, 165, 0), new Color(235,145,0)); // Laranja para editar
         btnEditar.addActionListener(e -> editarRendaSelecionada());
 
-        JButton btnExcluir = new JButton("Excluir Renda");
-        personalizarBotao(btnExcluir);
+        JButton btnExcluir = new JButton("Excluir Gasto");
+        personalizarBotao(btnExcluir, new Color(220, 20, 60), new Color(200,10,50)); // Vermelho para excluir
         btnExcluir.addActionListener(e -> excluirRendaSelecionada());
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        painelBotoes.setBackground(new Color(45, 45, 45));
         painelBotoes.add(btnAdicionar);
         painelBotoes.add(btnEditar);
         painelBotoes.add(btnExcluir);
@@ -142,15 +146,15 @@ public class TelaRendas extends JPanel {
         add(painelBotoes, BorderLayout.SOUTH);
     }
     
-    private void personalizarBotao(JButton botao) {
+   private void personalizarBotao(JButton botao, Color corFundo, Color corBorda) {
         botao.setFont(new Font("SansSerif", Font.BOLD, 12));
-        botao.setBackground(new Color(34,139,34)); // Verde para botões de renda
+        botao.setBackground(corFundo);
         botao.setForeground(Color.WHITE);
         botao.setFocusPainted(false);
         botao.setPreferredSize(new Dimension(150, 35));
-        botao.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(24,129,24),1),
-            BorderFactory.createEmptyBorder(5,15,5,15)
+         botao.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(corBorda,1), // Borda sutil
+            BorderFactory.createEmptyBorder(5,15,5,15) // Padding interno
         ));
     }
 

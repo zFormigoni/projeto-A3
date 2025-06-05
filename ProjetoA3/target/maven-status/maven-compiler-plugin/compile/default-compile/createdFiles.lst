@@ -8,6 +8,8 @@ com\mycompany\projetoa3\Usuario.class
 com\mycompany\projetoa3\telas\TelaResumoDetalhado$TransacaoResumo.class
 com\mycompany\projetoa3\telas\gasto\EditarGasto.class
 com\mycompany\projetoa3\telas\renda\Renda.class
+com\mycompany\projetoa3\telas\TelaResumoAdmin$2.class
+com\mycompany\projetoa3\telas\TelaResumoAdmin$TransacaoLinha.class
 com\mycompany\projetoa3\Navegacao.class
 com\mycompany\projetoa3\SessaoUsuario.class
 com\mycompany\projetoa3\telas\adm\TelaGerenciarCategorias$2.class
@@ -23,6 +25,7 @@ com\mycompany\projetoa3\telas\renda\EditarRenda.class
 com\mycompany\projetoa3\telas\gasto\AdicionarGasto.class
 com\mycompany\projetoa3\telas\adm\TelaAdmin$1.class
 com\mycompany\projetoa3\telas\adm\TelaGerenciarUsuarios$3.class
+com\mycompany\projetoa3\telas\TelaResumoAdmin$3.class
 com\mycompany\projetoa3\telas\TelaResumoDetalhado$3.class
 com\mycompany\projetoa3\TelaInicial$3.class
 com\mycompany\projetoa3\telas\gasto\TelaGastos.class
@@ -40,6 +43,8 @@ com\mycompany\projetoa3\telas\adm\TelaGerenciarUsuarios$2.class
 com\mycompany\projetoa3\telas\renda\RendaDAO.class
 com\mycompany\projetoa3\TelaCadastrar$2.class
 com\mycompany\projetoa3\CategoriaDAO.class
+com\mycompany\projetoa3\telas\TelaResumoAdmin.class
+com\mycompany\projetoa3\telas\TelaResumoAdmin$1.class
 com\mycompany\projetoa3\TelaInicial$2.class
 com\mycompany\projetoa3\TelaCadastrar$1.class
 com\mycompany\projetoa3\telas\TelaResumoDetalhado$1.class

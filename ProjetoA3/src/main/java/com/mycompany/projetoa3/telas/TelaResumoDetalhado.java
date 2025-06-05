@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 public class TelaResumoDetalhado extends JPanel {
 
     private final String cpfUsuario;
-    private final String tipoUsuario;
     private final DecimalFormat df = new DecimalFormat("R$ #,##0.00");
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM");
     private final SimpleDateFormat sdfAnoMes = new SimpleDateFormat("yyyy-MM");
@@ -62,9 +61,8 @@ public class TelaResumoDetalhado extends JPanel {
     private JPanel painelPrincipaisGastosLista;
     private JLabel lblDataAtual; // Tornar acessível para atualizar a data também
 
-    public TelaResumoDetalhado(String cpfUsuario, String tipoUsuario) {
+    public TelaResumoDetalhado(String cpfUsuario) {
         this.cpfUsuario = cpfUsuario;
-        this.tipoUsuario = tipoUsuario;
         setLayout(new BorderLayout(10, 10));
         setBorder(new EmptyBorder(10, 10, 10, 10));
         setBackground(Color.DARK_GRAY.darker());
@@ -103,35 +101,19 @@ public class TelaResumoDetalhado extends JPanel {
         add(painelSuperior, BorderLayout.NORTH);
 
         // Painel Principal (Colunas)
-        if (tipoUsuario != null && tipoUsuario.equalsIgnoreCase("admin")) {            
-            JPanel painelPrincipal = new JPanel(new GridLayout(1, 4, 10, 10));
-            painelPrincipal.setOpaque(false);
+        JPanel painelPrincipal = new JPanel(new GridLayout(1, 3, 10, 10));
+        painelPrincipal.setOpaque(false);
 
-            //JPanel colunaCPF = criarColunaCPF();            // CPF
-            JPanel colunaEsquerda = criarColunaEsquerda();  // DATA 
-            JPanel colunaCentro = criarColunaCentro();      // DESCRICAO
-            JPanel colunaDireita = criarColunaDireita();    // VALOR
+        JPanel colunaEsquerda = criarColunaEsquerda();  // Resumo
+        JPanel colunaCentro = criarColunaCentro();      // Lista
+        JPanel colunaDireita = criarColunaDireita();    // Graficos
 
-            painelPrincipal.add(colunaEsquerda);
-            painelPrincipal.add(colunaCentro);
-            painelPrincipal.add(colunaDireita);
+        painelPrincipal.add(colunaEsquerda);
+        painelPrincipal.add(colunaCentro);
+        painelPrincipal.add(colunaDireita);
 
-            add(painelPrincipal, BorderLayout.CENTER);
-            
-        } else {
-            JPanel painelPrincipal = new JPanel(new GridLayout(1, 3, 10, 10));
-            painelPrincipal.setOpaque(false);
-
-            JPanel colunaEsquerda = criarColunaEsquerda();  // DATA 
-            JPanel colunaCentro = criarColunaCentro();      // DESCRICAO
-            JPanel colunaDireita = criarColunaDireita();    // VALOR
-
-            painelPrincipal.add(colunaEsquerda);
-            painelPrincipal.add(colunaCentro);
-            painelPrincipal.add(colunaDireita);
-
-            add(painelPrincipal, BorderLayout.CENTER);
-        }
+        add(painelPrincipal, BorderLayout.CENTER);
+        
     }
 
     private JPanel criarColunaEsquerda() {

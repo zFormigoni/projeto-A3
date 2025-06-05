@@ -53,13 +53,18 @@ public class Navegacao extends JFrame {
 
         // Telas comuns
         // ***** ALTERAÇÃO PRINCIPAL AQUI *****        
-        painelPrincipal.add(new TelaResumoDetalhado(cpfUsuario, tipoUsuario), "Resumo"); // Usa a nova tela
-        painelPrincipal.add(new TelaGastos(cpfUsuario), "Gastos");
-        painelPrincipal.add(new TelaRendas(cpfUsuario), "Renda");
-        painelPrincipal.add(new TelaPerfil(cpfUsuario), "Perfil");
-
+        if (telaInicial == "Resumo admin"){
+            painelPrincipal.add(new TelaResumoAdmin(), "Resumo"); // Usa a nova tela
+            painelPrincipal.add(new TelaPerfil(cpfUsuario), "Perfil");
+        } else {
+            painelPrincipal.add(new TelaResumoDetalhado(cpfUsuario), "Resumo"); // Usa a nova tela
+            painelPrincipal.add(new TelaGastos(cpfUsuario), "Gastos");
+            painelPrincipal.add(new TelaRendas(cpfUsuario), "Renda");
+            painelPrincipal.add(new TelaPerfil(cpfUsuario), "Perfil");
+        }    
+        
         // Telas de admin
-        if (tipoUsuario != null && tipoUsuario.equalsIgnoreCase("admin")) {
+        if (telaInicial == "Resumo admin") {
             painelPrincipal.add(new JTextField(11));
 
             painelPrincipal.add(new TelaAdmin(cpfUsuario, e -> trocarTela(e.getActionCommand())), "Admin");
@@ -71,7 +76,7 @@ public class Navegacao extends JFrame {
 
 
         // Adiciona os componentes à janela
-        add(criarBarraNavegacao(), BorderLayout.NORTH);
+        add(criarBarraNavegacao(telaInicial), BorderLayout.NORTH);
         add(painelPrincipal, BorderLayout.CENTER);
 
         // Exibe a tela inicial (fallback para Resumo)
@@ -120,7 +125,7 @@ public class Navegacao extends JFrame {
         }
     }
 
-    private JPanel criarBarraNavegacao() {
+    private JPanel criarBarraNavegacao(String telaInicial) {
         JPanel barra = new JPanel(new BorderLayout());
         barra.setBackground(new Color(60, 63, 65)); // Cor de fundo mais escura para a barra
         barra.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); // Pequena margem
@@ -146,19 +151,19 @@ public class Navegacao extends JFrame {
         painelBotoes.setOpaque(false);
 
         // Botões padrão
-        String[] telasPadrao = {"Resumo", "Gastos", "Renda", "Perfil"};
-        for (String nome : telasPadrao) {
+        // Botões usuraios
+            String[] btsTela;
+       if (!telaInicial.equals("Resumo admin")) {
+           btsTela = new String[]{"Resumo", "Gastos", "Renda", "Perfil"};
+       } else {
+           btsTela = new String[]{"Resumo", "Perfil", "Admin"};
+       }
+            
+        for (String nome : btsTela) {
             JButton botao = criarBotao(nome);
             botoesNavegacao.put(nome, botao);
             painelBotoes.add(botao);
-        }
-
-        // Botão adicional para admin
-        if (tipoUsuario != null && tipoUsuario.equalsIgnoreCase("admin")) {
-            JButton botaoAdmin = criarBotao("Admin");
-            botoesNavegacao.put("Admin", botaoAdmin);
-            painelBotoes.add(botaoAdmin);
-        }
+        }        
 
         barra.add(painelBotoes, BorderLayout.EAST);
         return barra;
