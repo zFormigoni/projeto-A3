@@ -25,6 +25,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -34,9 +35,12 @@ public class TelaResumoAdmin extends JPanel{
     private final DecimalFormat df = new DecimalFormat("R$ #,##0.00");
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM");
     
+    
     private DefaultTableModel modeloUltimasTransacoes;
     
     private JLabel lblDataAtual; // Tornar acessível para atualizar a data também
+    private JTextField txtFiltroCpf; // Campo para CPF
+
 
     public TelaResumoAdmin() {
         setLayout(new BorderLayout(10, 10));
@@ -57,6 +61,15 @@ public class TelaResumoAdmin extends JPanel{
         lblDataAtual.setFont(new Font("SansSerif", Font.BOLD, 16));
         lblDataAtual.setForeground(Color.WHITE);
         painelSuperior.add(lblDataAtual, BorderLayout.WEST);
+        
+        txtFiltroCpf = new JTextField();
+        txtFiltroCpf.setToolTipText("Digite o CPF para filtrar");
+        txtFiltroCpf.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        txtFiltroCpf.setColumns(10);
+        txtFiltroCpf.setMaximumSize(txtFiltroCpf.getPreferredSize()); // Evita esticar
+
+        painelSuperior.add(txtFiltroCpf, BorderLayout.CENTER);
+
 
         JButton btnAtualizar = new JButton("Atualizar");
         btnAtualizar.setFont(new Font("SansSerif", Font.PLAIN, 12));
@@ -73,6 +86,14 @@ public class TelaResumoAdmin extends JPanel{
                 carregarDados(); // Chama o método para recarregar todos os dados
             }
         });
+        
+        btnAtualizar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                carregarDados();
+            }
+        });
+
         painelSuperior.add(btnAtualizar, BorderLayout.EAST);
         
         add(painelSuperior, BorderLayout.NORTH);
@@ -101,7 +122,7 @@ public class TelaResumoAdmin extends JPanel{
         lblTituloTransacoes.setForeground(Color.WHITE);
         coluna.add(lblTituloTransacoes, BorderLayout.NORTH);
 
-        modeloUltimasTransacoes = new DefaultTableModel(new Object[]{"Cpf","Data", "Descrição", "Valor"}, 0) {
+        modeloUltimasTransacoes = new DefaultTableModel(new Object[]{"Cpf","Data", "Categoria", "Valor"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -114,6 +135,9 @@ public class TelaResumoAdmin extends JPanel{
     tabelaUltimasTransacoes.setOpaque(false); 
     tabelaUltimasTransacoes.setShowGrid(false);
     tabelaUltimasTransacoes.setForeground(Color.LIGHT_GRAY);
+    
+    tabelaUltimasTransacoes.setCellSelectionEnabled(true);
+    tabelaUltimasTransacoes.setRowSelectionAllowed(true);
 
     DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
         @Override
@@ -167,42 +191,44 @@ public class TelaResumoAdmin extends JPanel{
     }
      
     private void carregarDados() {
-        // Atualiza a data exibida
-        if (lblDataAtual != null) {
-            lblDataAtual.setText("DATA: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        }
+    if (lblDataAtual != null) {
+        lblDataAtual.setText("DATA: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+    }
 
-        modeloUltimasTransacoes.setRowCount(0); // Limpa a tabela
-        List<TelaResumoAdmin.TransacaoLinha> ultimasTransacoes = new ArrayList<>();
+    modeloUltimasTransacoes.setRowCount(0);
+    List<TransacaoLinha> ultimasTransacoes = new ArrayList<>();
 
-        // Adiciona todas as rendas
-        for (Renda r : RendaDAO.listarRenda()) {
-            ultimasTransacoes.add(new TransacaoLinha(r.getCpfUsuario(), r.getDataRenda(), r.getDescricao(), r.getValor()));
-        }
+    String filtroCpf = txtFiltroCpf.getText().trim(); // Lê o filtro digitado
 
-        // Adiciona todos os gastos
-        for (Gasto g : GastoDAO.listarGastos()) {
-            ultimasTransacoes.add(new TransacaoLinha(g.getCpfUsuario(), g.getDataGasto(), g.getDescricao(), -g.getValor()));
-        }
-
-        // Ordena por data decrescente
-        Collections.sort(ultimasTransacoes, Comparator.comparing(TransacaoLinha::getData).reversed());
-
-        // Adiciona até 10 últimas transações na tabela
-        int count = 0;
-        for (TransacaoLinha tr : ultimasTransacoes) {
-            if (count++ < 100) {
-                modeloUltimasTransacoes.addRow(new Object[]{
-                    tr.getCpf(),
-                    sdf.format(tr.getData()),
-                    tr.getDescricao(),
-                    tr.getValor()
-                });
-            } else {
-                break;
-            }
+    for (Renda r : RendaDAO.listarRenda()) {
+        if (filtroCpf.isEmpty() || r.getCpfUsuario().equals(filtroCpf)) {
+            ultimasTransacoes.add(new TransacaoLinha(r.getCpfUsuario(), r.getDataRenda(), r.getNomeCategoria(), r.getValor()));
         }
     }
+
+    for (Gasto g : GastoDAO.listarGastos()) {
+        if (filtroCpf.isEmpty() || g.getCpfUsuario().equals(filtroCpf)) {
+            ultimasTransacoes.add(new TransacaoLinha(g.getCpfUsuario(), g.getDataGasto(), g.getNomeCategoria(), -g.getValor()));
+        }
+    }
+
+    Collections.sort(ultimasTransacoes, Comparator.comparing(TransacaoLinha::getData).reversed());
+
+    int count = 0;
+    for (TransacaoLinha tr : ultimasTransacoes) {
+        if (count++ < 100) {
+            modeloUltimasTransacoes.addRow(new Object[]{
+                tr.getCpf(),
+                sdf.format(tr.getData()),
+                tr.getDescricao(),
+                tr.getValor()
+            });
+        } else {
+            break;
+        }
+    }
+}
+
           
     private static class TransacaoLinha {
         private String cpf;

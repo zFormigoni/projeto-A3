@@ -41,7 +41,7 @@ public class TelaInicial extends JFrame {
         painelConteudo.setBorder(new EmptyBorder(20, 20, 20, 20)); // Margem interna
 
         // Título "BEM VINDO"
-        JLabel lblTitulo = new JLabel("SPENDLESS", SwingConstants.CENTER);
+        JLabel lblTitulo = new JLabel("SPEND LESS", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 32)); // Fonte maior e moderna
         lblTitulo.setForeground(Color.WHITE); // Cor do texto
         lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);

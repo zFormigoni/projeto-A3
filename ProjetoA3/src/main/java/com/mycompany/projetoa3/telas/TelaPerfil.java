@@ -43,13 +43,13 @@ public class TelaPerfil extends JPanel {
         JPanel painelInfo = new JPanel(new GridBagLayout());
         painelInfo.setOpaque(false);
         painelInfo.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.GRAY), "Informações Pessoais",
-                javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION,
-                javax.swing.border.TitledBorder.DEFAULT_POSITION,
-                new Font("Segoe UI", Font.BOLD, 16), Color.LIGHT_GRAY
-            ),
-            new EmptyBorder(25, 25, 25, 25)
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(Color.GRAY), "Informações Pessoais",
+                        javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION,
+                        javax.swing.border.TitledBorder.DEFAULT_POSITION,
+                        new Font("Segoe UI", Font.BOLD, 16), Color.LIGHT_GRAY
+                ),
+                new EmptyBorder(25, 25, 25, 25)
         ));
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -116,7 +116,7 @@ public class TelaPerfil extends JPanel {
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.gridwidth = 2;
-        gbc.weighty = 1.0; 
+        gbc.weighty = 1.0;  
         painelInfo.add(new JPanel(){{setOpaque(false);}}, gbc);
 
         add(painelInfo, BorderLayout.CENTER);
@@ -157,6 +157,9 @@ public class TelaPerfil extends JPanel {
                 boolean sucesso = ConexaoDB.excluirUsuarioPorCpf(cpfUsuario);
                 if (sucesso) {
                     JOptionPane.showMessageDialog(TelaPerfil.this, "Conta excluída com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    // Limpar dados da sessão após exclusão bem-sucedida
+                    SessaoUsuario.limparSessao(); // Adicionado para limpar a sessão
+
                     Window ancestor = SwingUtilities.getWindowAncestor(TelaPerfil.this);
                     if (ancestor != null) {
                         ancestor.dispose();
@@ -168,8 +171,43 @@ public class TelaPerfil extends JPanel {
             }
         });
 
+        // NOVO BOTÃO SAIR
+        JButton btnSair = new JButton("SAIR");
+        personalizarBotao(btnSair, new Color(108, 117, 125), Color.WHITE); // Cor cinza para o botão SAIR
+
+        btnSair.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int confirm = JOptionPane.showConfirmDialog(
+                        TelaPerfil.this,
+                        "Tem certeza que quer sair?",
+                        "Confirmar Saída",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    // Limpar os dados da sessão do usuário atual
+                    // Se sua classe SessaoUsuario não tiver um método limparSessao(),
+                    // você pode setar os campos relevantes para null, por exemplo:
+                    // SessaoUsuario.setCPFLogado(null);
+                    // SessaoUsuario.setNomeUsuario(null);
+                    SessaoUsuario.limparSessao(); // Assumindo que este método existe e limpa os dados da sessão
+
+                    // Fecha a janela atual (que provavelmente é a tela de Navegação)
+                    Window ancestor = SwingUtilities.getWindowAncestor(TelaPerfil.this);
+                    if (ancestor != null) {
+                        ancestor.dispose();
+                    }
+
+                    // Abre a TelaInicial
+                    new TelaInicial().setVisible(true);
+                }
+            }
+        });
+
         painelBotoes.add(btnEditar);
         painelBotoes.add(btnExcluir);
+        painelBotoes.add(btnSair); // Adiciona o botão SAIR ao painel
         add(painelBotoes, BorderLayout.SOUTH);
     }
     
@@ -179,8 +217,8 @@ public class TelaPerfil extends JPanel {
         botao.setForeground(foreground);
         botao.setFocusPainted(false);
         botao.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(background.darker(), 1),
-            new EmptyBorder(10, 25, 10, 25) 
+                BorderFactory.createLineBorder(background.darker(), 1),
+                new EmptyBorder(10, 25, 10, 25) 
         ));
         Color originalBackground = botao.getBackground();
         botao.addMouseListener(new java.awt.event.MouseAdapter() {
